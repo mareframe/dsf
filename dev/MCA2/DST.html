@@ -1,0 +1,423 @@
+﻿<!DOCTYPE html>
+<html lang="EN-US">
+<head>
+    <meta charset="utf-8" />
+    <title>Mareframe Decision Support Tool</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">-->
+    <link href="css/lib/bootstrap.min.css" rel="stylesheet" />
+    <!--<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">-->
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/start/jquery-ui.css">
+
+    <link href="css/body.css" rel="stylesheet" />
+    <link href="css/footer.css" rel="stylesheet" />
+    <link href="css/dialog.css" rel="stylesheet" />
+    <link href="css/debug.css" rel="stylesheet" />
+    <link href="css/SA.css" rel="stylesheet" />
+    <link href="css/defaultTheme.css" rel="stylesheet" />
+
+    <!--<link id="ui_css" href="jQueryUI/jquery-ui_original.css" rel="stylesheet" />-->
+    <link href="css/DST.css" rel="stylesheet" />
+    
+</head>
+<body >
+    <script src="http://code.jquery.com/jquery-1.11.3.js"></script>
+    <!--<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>-->
+    <script src="http://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://code.createjs.com/createjs-2015.05.21.min.js"></script>
+
+    <script src="https://www.google.com/jsapi"></script>
+    <script>google.load("visualization", "1.0", { "packages": ["corechart", "table"] });</script>
+
+    <script src="js/math.min.js" type="text/javascript"></script>
+    <script src="js/jquery.fixedheadertable.js" type="text/javascript"></script>
+
+    <script src="ts/Model.js" type="text/javascript"></script>
+    <script src="ts/MareframeGUI.js" type="text/javascript"></script>
+    <script src="ts/FileIO.js" type="text/javascript"></script>
+    <script src="ts/Element.js" type="text/javascript"></script>
+    <script src="ts/Connection.js" type="text/javascript"></script>
+    <script src="ts/Handler.js" type="text/javascript"></script>
+    <script src="ts/Tools.js" type="text/javascript"></script>
+    <script src="ts/ValueFunction.js" type="text/javascript"></script>
+    <script src="ts/TKN_Widget.js" type="text/javascript"></script>
+    <script src="ts/testHandler.js" type="text/javascript"></script>
+    <script src="ts/ElementOO.js" type="text/javascript"></script>
+
+    <!--<canvas id="testCanvas" width="700" height="700"></canvas>-->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="page-header">
+                    <h1 id="model_header">
+                        <a id="webpage" href="http://www.mareframe-fp7.org/">
+                            <img id="logo" src="img/logo_mareframe.png">
+                        </a>
+                    </h1>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <a href="../../index.html"><img src="img/europe.jpg" class="img-thumbnail europe-map-back"></a>
+                        <p id="model_description">This is the Mareframe BBN tool. You may doubleclick on each element below, to access the properties tables for that element.<a href="MCA_instructions.pdf"> MCA Instructions</a></p>
+                        
+                    </div>
+                </div>
+            </div>
+            <!--<div class="col-lg-4 page-header europe-map-zoom">
+                <img src="img/locations/west-coast-of-scotland.jpg" class="center-block img-responsive img-rounded">
+            </div>-->
+        </div>
+    </div>
+    <div class="ui-widget ui-dialog ui-corner-all ui-widget-content header-bar" style="position: static">
+        <div class="ui-widget-header ui-corner-all ui-dialog-titlebar" id="modelHeader">Model</div>
+
+
+        <div style="padding: 1em 1em 0.5em 1.4em; font-size: 0.7em;">
+            
+            <button class="advButton" id="newDcmt" title="">New Document</button>
+
+            <div class="LoadFileBtn" id="lodDcmtDiv" title="Opens file from client machine">
+                <input class="upload" type="file" id="lodDcmt" />
+                <span>Open Document</span>
+            </div>
+
+            <button id="savDcmt" title="Save the current document. Use the download link at the bottom to move the document the client machine">Save Document</button>
+            <div class="LoadFileBtn" id="importDiv" title="Import Attribute and Alternatives from a csv file">
+                <input class="upload" type="file" id="import" />
+                <span>Import</span>
+            </div>
+
+            <!--<button class="advButton" id="resetDcmt">Reset</button>-->
+            <button class="advButton" id="newElmt" title="Adds a new element to the workspace">New Element</button>
+            <button class="advButton" id="newChance">New Chance</button>
+            <button class="advButton" id="newDec">New Decision</button>
+            <button class="advButton" id="newValue">New Value</button>
+            <button class="advButton" id="deleteElmt" title="Deletes all selected elements">Delete Element</button>
+            <button class="advButton" id="selectAllElmt" title="Selects all elements">Select All</button>
+            <input class="advButton" type="checkbox" id="cnctTool" style="display: inline-block">
+            <label for="cnctTool" class="advButton">Connect Tool</label>
+            <input class="button" type="checkbox" id="editorMode" style="float: left; display: inline-block">
+            <label for="editorMode" class="button" style="float: right" title="Toggling Editor mode enables a user to change everything, use with caution">Editor Mode</label>
+        </div>
+        
+    </div>
+
+            <div id="MCAContainer" class="ui-widget" >
+                <div id="MCAToolTitle_div" class="header-bar ui-corner-all ui-widget-header ui-dialog-titlebar" title="Double click any goal (green) or objective(red) to change weights, Double click any attribute(blue) to inspect data or to change the utility function, Double click any alternative(yellow) to exclude or include the alternative
+">Value Tree</div>
+                <!--MCA Tool canvas-->
+                <!--<canvas id="MCATool" width="800" height="600" style="display:inline-block; min-height: 400px; min-width: 600px" ></canvas>-->
+                <!--<div class="ui-widget-content">-->
+                    <canvas id="MCATool" class="ui-widget-content ui-corner-all" width="1500" height="1200" style="display:inline-block;"></canvas>
+                <!--</div>-->
+                <!--Data Table-->
+                <div class="ui-widget">
+                    <div id="finalScoreTitle_div" class="ui-widget-header ui-corner-all" title="The scores and the weights are combined to form a finalscore. The finalscore is based on the given data and the weighting of the sub-objectives, and is a measure of the combined value of the alternative.">Score</div>
+                    <div id="finalScoreOverview_div" class="ui-widget-content ui-corner-all" style="display:inline-block" title="FinalScore">
+                        <div id="finalScoreChartOverview_div" title="Choose an element to inspect the finalscore of the element">Scores</div>
+                        <div id="finalScoreObjectiveOverview_div">
+                            Objective
+                            <select id="finalScoreObjectiveOverview_select">
+                                <option> 133 </option>
+                                <option> 2 </option>
+                            </select>
+                        </div>
+                        <div id="finalScoreSegmentsOverview_div" title="Choose the degree of detail by choosing a higher criteria">
+
+                            <select id="finalScoreSegmentOverview_select">
+                                <option> 3 </option>
+                                <option> 4 </option>
+                            </select>
+                        </div>
+                        <div>
+                            <button id="finalScoreScoreAsText_Button" class="ui-button ui-corner-all" title="Get scores in text form">Score as text</button>
+                            <div id="finalScoreScoreAsText_Dialog"></div>
+                                <div>
+                                    <table id="scoreAsTextTable"></table>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ui-widget">
+                    <div id="consequenceTableTitle_div" class="ui-widget-header ui-corner-all" title="Overview of data of each attribute and alternative">Consequence Table</div>
+                    <div id="MCADataTable" class="table-editable ui-widget-content ui-corner-all" style="display:inline-block" title="Consequence Table">
+
+                        <!--<table id="editableDataTable" class="table" style="border: 2px solid #ffffff;border-collapse:collapse;">-->
+                        <table id="editableDataTable" class="table"> </table>
+                    </div>
+                </div>
+                <!--Sensitivity analysis Start   -->
+                <div class="ui-widget">
+                <div id="SenanaTitle_div" class="ui-widget-header ui-corner-all" title="Choose a connection to analyze by choosing end and start elements in the drop down menus">Sensitivity Analysis</div>
+                    <div id="SenAna" class="ui-widget-content ui-corner-all" title="Inspect the change in finalscore, when the weight of the connection is changed">
+                        <!--<div class="senana" id="sliderControl_div"></div>-->
+                        <div class="senana" id="dropdownControl_div" title="Choose the element where the connection analyzed ends">
+                            <select id="elementSelect"></select>
+                        </div>
+                        <div class="senana" id="dropdownControlSub_div" title="Choose the element where the connection analyzed starts">
+                            <select id="elementSubSelect"></select>
+                        </div>
+                        <div class="senana" id="lineChart_div">Line Chart</div>
+                        <div class="senana" id="tableChart_div">Table Chart</div>
+
+                        <div class="senana" id="sliderControl_div"></div>
+                        <div class="senana" id="sliderValNormDebug" title="Value of the slide">---</div>
+                        <div class="senana" id="sliderValDebug" title="Value of the weight of the chosen connection">---</div>
+                    </div>
+                </div>
+                <!--Sensitivity analysis End     -->
+            </div> <!--MCAContainer End-->
+     
+    
+    
+        <!--<canvas id="MCATool" width="1500" height="1000" style="display:inline-block;"></canvas>-->
+    
+   
+        <!--Data Table-->
+        <!--<div id="finalScoreTab_div" style="display:inline-block">
+            <div id="finalScoreChartTab_div">Scores</div>
+            <div id="finalScoreObjectiveTab_div">
+                Objective
+                <select id="finalScoreObjectiveTab_select">
+                    <option> 1 </option>
+                    <option> 2 </option>
+                </select>
+            </div>
+            <div id="finalScoreSegmentsTab_div">
+                Segments<br />
+                <select id="finalScoreSegmentTab_select">
+                    <option> 3 </option>
+                    <option> 4 </option>
+                </select>
+            </div>-->
+            <!--<div id="finalScoreBars_div">
+                Bars
+                <select id="finalScoreBars_select">
+                    <option> 5 </option>
+                    <option> 6 </option>
+                </select>
+            </div>
+            <button id="finalScoreSetAsText_button">As text</button>-->
+        <!--</div>-->
+   
+        <!--<div id="debug">
+            <p id="mX"></p>
+            <p id="mY"></p>
+            <p id="elmtX"></p>
+            <p id="elmtY"></p>
+            <p id="mAction"></p>
+            <p id="mTarget"></p>
+            <p id="mConnect"></p>
+            <button id="debugButton"> Debug </button>
+            <button id="debugConnect"> Connections </button>
+        </div>-->
+
+
+
+
+        <div id="autoUpdateStatus" class="modeStatus"></div>
+        <div id="modeStatus" class="modeStatus"></div>
+        <div id="saveFile_div">
+            <span>Filename: </span> <span id="filename">test</span> <span>.xdsl</span>
+            <!--<form name="saveFileForm" action="" onsubmit="Mareframe.DST.Tools.saveFileFormSubmit()" >
+                <label for="saveFileName">Filename: </label>
+                <input id="saveFileName" name="saveFileName" type="text" />
+            </form>-->
+            <a id="downloadLink"></a>
+        </div>
+
+
+        <!--<div id="saveFile_div"><a id="downloadLink"></a></div>-->
+
+        <!--Popup Dialog-->
+        <div id="detailsDialog">
+            <div class="info_div dialogDiv" style="width: 30%; overflow: visible;">
+                <div class="info_div" style="width: 80px; float: left;"> Name: </div>
+                <div class="info_div" id="info_name" style="margin-left: 50px;">  </div>
+                <div class="info_div" id="info_type_tag" style="width: 80px; float: left;"> Type: </div>
+                <div class="info_div" id="info_type" style="margin-left: 50px;">  </div>
+            </div>
+            <div id="elementType" class="dialogDiv">
+                <form>
+                    <fieldset>
+                        <label for="MCAelmtType">Type of Element:</label>
+                        <select name="MCAelmtType" id="MCAelmtType">
+                            <option id="optionAttribute" value="103">Goal</option>
+                            <option id="optionObjective" value="101">Objective</option>
+                            <option id="optionAlternative" value="100">Attribute</option>
+                            <option id="optionGoal" value="102">Alternative</option>
+                        </select>
+                    </fieldset>
+                </form>
+            </div> <!--end elementType-->
+            <div id="DisregardAlternative">
+                <label for="disAlt_check">Exclude Alternatives</label>
+                <input type="checkbox" id="disAlt_check" name="disAlt_check" />
+            </div>
+            <div id="weightingMethodSelector" class="dialogDiv">
+                <form>
+                    <fieldset>
+                        <label for="MCAWeightingMethod">Type of Weighting Method:</label>
+                        <select name="MCAWeightingMethod" id="MCAWeightingMethod">
+                            <option id="optionSwingDirect" value="1">Swing / Direct</option>
+                            <option id="optionValueFunction" value="2">Value Function</option>
+                        </select>
+                    </fieldset>
+                </form>
+            </div> <!--end weightingMethodSelector-->
+            <div id="valueFn_div" class="dialogDiv">
+                <canvas id="valueFn_canvas" width="100" height="100"></canvas>
+                <button class="button" id="valueFn_Linear">Linearize</button>
+                <button class="button" id="valueFn_Flip">Flip Direction</button>
+            </div>
+            <div id="pwl_div" class="dialogDiv">
+                <canvas id="pwl" width="250" height="270" style="float: left"></canvas>
+                <div style="margin: 30px">
+                    <button id="flipHorizontal">Flip Horizontal</button>
+                    <button id="flipVertical">Flip Vertical</button>
+                </div>
+                <div style="margin: 30px">
+                    <button id="linearize">Linearize</button>
+                    <!--<button id="loadFromFile">Load from file</button>-->
+                    <div class="LoadFileBtn" id="loadFromFileDiv">
+                        <input class="upload" type="file" id="loadFromFile" />
+                        <span>Load from file</span>
+                    </div>
+                    <button id="saveToFile">Save to file</button>
+                    <button id="deleteAllPoints">Delete all points</button>
+                </div>
+                <div id="selectedPointInfo" style="margin: 30px">
+                    <label for="posX">X:</label>
+                    <input type="number" step="0.1" id="posX" />
+                    <label for="posY">Y:</label>
+                    <input type="number" step="0.1" id="posY" />
+                    <button id="deleteButton" style="display: inline">Delete Point</button>
+                </div>
+                <div id="saveFile_div">
+                    <span>Filename: </span> <span id="filename">valueFn</span> <span>.data</span>
+                    <a id="downloadLinkValueFunction"></a>
+                </div>
+                <div style="margin: 30px">
+                    <button id="showAlternatives">Show Alternatives</button>
+
+                </div>
+            </div>
+
+            <div id="sliders_div" class="dialogDiv"></div>
+            <div id="datatable_div" class="dialogDiv"></div>
+            <div id="description_div" class="dialogDiv"></div>
+            <div id="chart_div" class="dialogDiv"></div>
+            <input class="dialogButton dialogDiv" type="checkbox" id="showDescription" checked>
+            <label for="showDescription" class="button" id="showDescriptionButtonLabel">Hide Description</label>
+            <div id="userDescription_div dialogDiv"> </div>
+            <div class="editable dialogDiv">
+                <div id="defTable_div"></div>
+            </div>
+            <button class="dialogButton dialogDiv" id="addDataRow">Add Data Row</button>
+            <button class="dialogButton dialogDiv" id="submit">Submit changes</button>
+            <button class="dialogButton dialogDiv" id="values">Show values</button>
+            <div id="valuesTable_div"></div>
+            <div id="userDescription_div"> </div>
+
+        </div> <!--end detailsDialog-->
+
+        <script>
+            function cnctPress() {
+                $this.hide();
+            };
+
+            
+            //$('#editableDataTable').fixedHeaderTable({
+            //    fixedColumns: 1
+            //});
+            $("debugButton").button({ icons: { primary: "ui-icon-document" } });
+            $("debugConnect").button({ icons: { primary: "ui-icon-document" } });
+
+            $("#valueFn_Linear").button();
+            $("#valueFn_Flip").button();
+            $("#newDcmt").button({ icons: "ui-icon-document" });
+            $("#lodDcmtDiv").button({ icons: "ui-icon-folder-open" });
+            $("#lodDcmtDiv").button({ icon: "ui-icon-folder-open", iconPosition: "beginning" });
+            $("#savDcmt").button({ icon: "ui-icon-disk" });
+            $("#importDiv").button({ icon: "ui-icon-disk" });
+            $("#newElmt").button({ icon: "ui-icon-plus" });
+            $("#newDec").button({ icon: "ui-icon-plus" });
+            $("#newChance").button({ icon: "ui-icon-plus" });
+            $("#newValue").button({ icon: "ui-icon-plus" });
+            $("#deleteElmt").button({ icon: "ui-icon-trash" });
+            //$("#cnctTool").button({ icon: "ui-icon-link" }, cnctPress);
+            $("#fullscreen").button({ icon: "ui-icon-zoomin" });
+            //$("#editorMode").button({ icon: "ui-icon-link" });
+            $("#autoUpdate").button({ icon: "ui-icon-refresh" });
+            $("#updateMdl").button({ icon: "ui-icon-refresh" });
+            $("#resetDcmt").button({ icon: "ui-icon-arrowreturnthick-1-w" })
+            $("#selectAllElmt").button({ icon: "ui-icon-star" });
+            $("input[type=checkbox]").checkboxradio();
+            $("#detailsDialog").dialog({
+                autoOpen: false,
+                resizable: true,
+                height: 600,
+                width: 800,
+                show: {
+                    effect: "scale",
+                    duration: 400
+                },
+                hide: {
+                    //effect: "scale",
+                    effect: "explode",
+                    duration: 400
+                },
+                modal: false,
+                close: function () {
+                    //console.log("closing dialog html");
+                    $("#valuesTable_div").hide();
+                    $("#weightingMethodSelector").hide();
+                    $("#valueFn_div").hide();
+                    $("#sliders_div").hide();
+                    $("#datatable_div").hide();
+                    $("#description_div").hide();
+                    $("#chart_div").hide();
+                }, // end close
+                //beforeclose: function (){ //console.log("beforeclosing dialog");},
+                buttons: {
+                    Close: function () {
+                        $(this).dialog("close");
+                    },
+                } // end buttons
+            }); // end dialog
+            $("#weightingMethodSelector").hide();
+            $("#valueFn_div").hide();
+            $("#sliders_div").hide();
+            $("#datatable_div").hide();
+            $("#description_div").hide();
+            $("#chart_div").hide();
+            $("#valuesTable_div").hide();
+            $("#saveFile_div").hide();
+            $("#addDataRow").hide();
+            $("#values").hide();
+            $(document).ready(function () {
+                $(document).tooltip({ position: { my: "left bottom-15", at: "left top" } });
+                var MareFrame = MareFrame || {};
+                MareFrame.DST = MareFrame.DST || {};
+                new Mareframe.DST.Handler();
+                //new Mareframe.DST.TestHandler();
+            }); // end ready function
+
+        </script>
+        <footer class="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xs-2 col-sm-2 col-md-2">
+                        <img src="img/logo_eu.png" class="center-block img-responsive">
+                    </div>
+                    <div class="col-xs-10 col-sm-10 col-md-6">
+                        <p class="text-muted">This project has received funding from the European Union's Seventh Framework Programme for research, technological development and demonstration under grant agreement no. 613571.</p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+</body>
+
+</html>

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<link href="dragit.css" rel="stylesheet"/>
+		<script src="pathseg.js"></script>
+		<script src="jquery-1.10.2.min.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+		<script src="d3.v3.js"></script>
+		<script src="dragit.js"></script>
+		<title>Baltic Sea</title>
+
+		<style>
+
+			@import url(https://fonts.googleapis.com/css?family=Droid+Serif);
+			@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+			/*Document style*/
+			h1,h2,h3,h4,h5{
+				color: #0f334a;
+				font-family: 'Droid Serif', Arial, Helvetica, sans-serif;
+			}
+
+			p,ul,ol,td,label {
+				font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+				font-weight: 400;
+				font-size: 14px;
+				line-height: 20px;
+				color: #747474;
+				text-align: justify;
+			}
+
+			th, strong {
+				color: #0f334a;
+			}
+
+			body {
+				width: 1024px;
+				margin: 0 auto;
+			}
+
+			html,body {
+				-webkit-touch-callout: none;
+				-webkit-user-select: none;
+				-khtml-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				user-select: none;
+
+			}
+
+
+			label.highlighted{
+				background: rgba(0,0,0,0.1);
+				border-radius: 3px;
+			}
+
+			text {
+				cursor: default;
+			}
+
+			.tooltip-box {
+				padding: 4px;
+				background: #FFF;
+				z-index: 1000;
+				position: absolute;
+				pointer-events:none;
+				border-radius: 4px;
+				border: 1px solid #CCC;
+				font-size: 10px;
+			}
+
+			.gDragit {
+				pointer-events:none;
+			}
+
+			#boxplot, #timeline, #scatter{
+				height: 560px;
+			}
+
+			.selected {
+				stroke-width: 4;
+			}
+
+			button.icon:hover {
+				background-color: #DDD;
+			}
+
+			.icon {
+				border:none;
+				background: none;
+				width:21px;
+				height:21px;
+				display:inline-block;
+				background-size:cover;
+			}
+
+			.icon.icon-play {
+				background-image:url('img/ic_play_arrow_black_24px.svg');
+				opacity: 0.7;
+			}
+			.icon.icon-play[disabled] {
+				opacity: 0.3;
+			}
+			.icon.icon-pause {
+				background-image:url('img/ic_pause_black_24px.svg');
+				opacity: 0.7;
+			}
+			.icon.icon-reset {
+				background-image:url('img/ic_skip_previous_black_24px.svg');
+				opacity: 0.7;
+			}
+
+			input[type="range"] {
+				cursor:pointer;
+			}
+
+		
+			.axis path,
+			.axis line {
+				fill: none;
+				stroke: #000;
+				shape-rendering: crispEdges;
+			}
+
+			.x.axis path {
+				display: none;
+			}
+
+			.line {
+				fill: none;
+				stroke: steelblue;
+				stroke-width: 1.5px;
+			}
+
+			.box {
+			  font: 10px sans-serif;
+			}
+
+			.box line,
+			.box rect,
+			.box circle {
+			  fill: #fff;
+			  stroke: #000;
+			  stroke-width: 1.5px;
+			}
+
+			.box .center {
+			  stroke-dasharray: 3,3;
+			}
+
+			.box .outlier {
+			  fill: none;
+			  stroke: #ccc;
+			}		
+
+
+		</style>
+	</head>
+	<body style="background: rgba(41,137,202,1);">
+
+		<div style="background: #FFF; width: 1024px; padding: 20px">
+			<h1><a href="../baltic-sea.html">&lsaquo; Case Study: Baltic Sea</a></h1>
+			<h2>Charts</h2>
+			<div class="tooltip-box" style="display:none;">
+			</div>
+			<hr>
+			<ul class="nav nav-tabs" role="tablist">
+				<li role="presentation" class="active"><a href="charttest3.html#chart" id="charttab" aria-controls="chart" role="tab" data-toggle="tab">Charts</a></li>
+				<!--
+				<li role="presentation"><a href="#timeline" id="timelinetab" aria-controls="timeline" role="tab" data-toggle="tab">Timeline</a></li>
+				<li role="presentation"><a href="#scatter" id="scattertab" aria-controls="scatter" role="tab" data-toggle="tab">Scatterplot (Biomass v Landings)</a></li>
+				-->
+			</ul>
+			<div class="tab-content">
+				<div role="tabpanel" class="tab-pane active" id="chart">
+					<div id="combo"></div>
+					<div id="chartplots">&nbsp;</div>
+				</div>
+			</div>
+			<div class="container-fluid" id="chartplots-controls">				
+				<div class="row">
+					<div class="col-xs-12">
+						<br />
+						<div id="theText" class="text-center" style="font-weight:700;font-size:15px;">
+							&nbsp;
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-6">
+						<select name="chartoption" id="chartoption">	
+							<option value="0">EwE_HSE_N_PRS_BAU</option>
+							<option value="1">EwE_LSE_N_PRS_BAU</option>
+							<option value="2">EwE_HSE_1_WAR_BAU</option>
+							<option value="3">EwE_LSE_1_WAR_BAU</option>
+							<option value="4">EwE_HSE_2_WAR_BAU</option>
+							<option value="5">EwE_LSE_2_WAR_BAU</option>
+							<option value="6">EwE_HSE_N_PRS_BSP</option>
+							<option value="7">EwE_LSE_N_PRS_BSP</option>
+							<option value="8">EwE_HSE_1_WAR_BSP</option>
+							<option value="9">EwE_LSE_1_WAR_BSP</option>
+							<option value="10">EwE_HSE_2_WAR_BSP</option>
+							<option value="11">EwE_LSE_2_WAR_BSP</option>
+							<option value="12">EwE_HSE_N_PRS_REF</option>
+							<option value="13">EwE_LSE_N_PRS_REF</option>
+							<option value="14">EwE_HSE_1_WAR_REF</option>
+							<option value="15">EwE_LSE_1_WAR_REF</option>
+							<option value="16">EwE_HSE_2_WAR_REF</option>
+							<option value="17">EwE_LSE_2_WAR_REF</option>
+						</select>
+
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<br />
+		<br />
+
+		<script>
+			var dataset1 = [{
+				'date': '20111001',
+					'New York': '63.4',
+					'San Francisco': '62.7',
+					'Austin': '72.2'
+			}, {
+				'date': '20111002',
+					'New York': '58',
+					'San Francisco': '59.9',
+					'Austin': '67.7'
+			}, {
+				'date': '20111003',
+					'New York': '53.3',
+					'San Francisco': '59.1',
+					'Austin': '69.4'
+			}, {
+				'date': '20111004',
+					'New York': '35.7',
+					'San Francisco': '58.8',
+					'Austin': '68'
+			}, {
+				'date': '20111005',
+					'New York': '34.2',
+					'San Francisco': '58.7',
+					'Austin': '72.4'
+			}, ];
+
+			var dataset2 = [{
+				'date': '20111001',
+					'New York': '53.4',
+					'San Francisco': '52.7',
+					'Austin': '62.2'
+			}, {
+				'date': '20111002',
+					'New York': '48',
+					'San Francisco': '49.9',
+					'Austin': '57.7'
+			}, {
+				'date': '20111003',
+					'New York': '33.3',
+					'San Francisco': '49.1',
+					'Austin': '59.4'
+			}, {
+				'date': '20111004',
+					'New York': '45.7',
+					'San Francisco': '48.8',
+					'Austin': '58'
+			}, {
+				'date': '20111005',
+					'New York': '54.2',
+					'San Francisco': '48.7',
+					'Austin': '62.4'
+			}, ];
+
+			var margin = {top: 40, right: 40, bottom: 30, left: 50},
+			width = 320 - margin.left - margin.right,
+					height = 400 - margin.top - margin.bottom;
+
+			var parseDate = d3.time.format("%Y%m%d").parse;
+
+	/*
+			var x = d3.time.scale()
+					.range([0, width]);
+	*/
+
+			var x = d3.scale.linear()
+					.range([0, width]);
+
+			var y = d3.scale.linear()
+					.range([height, 0]);
+
+			var color = d3.scale.category10();
+
+			var xAxis = d3.svg.axis()
+					.scale(x)
+					.orient("bottom")
+					.tickFormat(d3.format("d"))
+					.tickValues([2010, 2020, 2030]);
+
+			var yAxis = d3.svg.axis()
+					.scale(y)
+					.orient("left");
+
+			var line = d3.svg.line()
+					.interpolate("basis")
+					.x(function (d) {
+						return x(d.date);
+					})
+					.y(function (d) {
+						return y(d.avgval);
+					});
+
+/*
+boxplotsvg = d3.select("#chartplots").selectAll("svg")
+boxplotsvg = d3.select("#chart_boxplot").selectAll("svg")
+						.data(data)
+						.enter().append("svg")
+*/				
+				
+			var svgbe = d3.select("#chartplots").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			svgbe.append("g").attr("class", "x axis").attr("transform", "translate(0," + height + ")");
+			svgbe.append("g").attr("class", "y axis").append("text").attr("transform", "rotate(-90)").attr("y", 6).attr("dy", ".71em").style("text-anchor", "end").text("Avg Val");
+			svgbe.append("text").attr("x", (width / 2)).attr("y", 0 - (margin.top / 2)).attr("text-anchor", "middle").style("font-size", "16px").style("text-decoration", "underline")  
+			.text("BE");
+
+			var svgdemtopel = d3.select("#chartplots").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			svgdemtopel.append("g").attr("class", "x axis").attr("transform", "translate(0," + height + ")");
+			svgdemtopel.append("g").attr("class", "y axis").append("text").attr("transform", "rotate(-90)").attr("y", 6).attr("dy", ".71em").style("text-anchor", "end").text("Avg Val");
+			svgdemtopel.append("text").attr("x", (width / 2)).attr("y", 0 - (margin.top / 2)).attr("text-anchor", "middle").style("font-size", "16px").style("text-decoration", "underline")  
+			.text("DemToPel");
+
+			var svgsimref = d3.select("#chartplots").append("svg").attr("width", width + margin.left + margin.right).attr("height", height + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			svgsimref.append("g").attr("class", "x axis").attr("transform", "translate(0," + height + ")");
+			svgsimref.append("g").attr("class", "y axis").append("text").attr("transform", "rotate(-90)").attr("y", 6).attr("dy", ".71em").style("text-anchor", "end").text("Avg Val");
+			svgsimref.append("text").attr("x", (width / 2)).attr("y", 0 - (margin.top / 2)).attr("text-anchor", "middle").style("font-size", "16px").style("text-decoration", "underline")  
+			.text("SimRef");
+
+
+			dataset1.forEach(function (d) {
+				d.date = parseDate(d.date);
+			});
+
+			dataset2.forEach(function (d) {
+				d.date = parseDate(d.date);
+			});	
+
+			var demToPel = [];
+			var bE = [];
+			var simRef = [];
+			var mainDataObject = {};
+			d3.json("baltic.json", function (dataObject) {
+				console.log('loaded');
+				mainDataObject = dataObject;
+
+				bE.push(dataObject['EwE_HSE_1_WAR_BAU']['BE']);
+				bE.push(dataObject['EwE_HSE_1_WAR_BSP']['BE']);
+				bE.push(dataObject['EwE_HSE_1_WAR_REF']['BE']);
+				bE.push(dataObject['EwE_HSE_2_WAR_BAU']['BE']);
+				bE.push(dataObject['EwE_HSE_2_WAR_BSP']['BE']);
+				bE.push(dataObject['EwE_HSE_2_WAR_REF']['BE']);
+				bE.push(dataObject['EwE_HSE_N_PRS_BAU']['BE']);
+				bE.push(dataObject['EwE_HSE_N_PRS_BSP']['BE']);
+				bE.push(dataObject['EwE_HSE_N_PRS_REF']['BE']);
+				bE.push(dataObject['EwE_LSE_1_WAR_BAU']['BE']);
+				bE.push(dataObject['EwE_LSE_1_WAR_BSP']['BE']);
+				bE.push(dataObject['EwE_LSE_1_WAR_REF']['BE']);
+				bE.push(dataObject['EwE_LSE_2_WAR_BAU']['BE']);
+				bE.push(dataObject['EwE_LSE_2_WAR_BSP']['BE']);
+				bE.push(dataObject['EwE_LSE_2_WAR_REF']['BE']);
+				bE.push(dataObject['EwE_LSE_N_PRS_BAU']['BE']);
+				bE.push(dataObject['EwE_LSE_N_PRS_BSP']['BE']);
+				bE.push(dataObject['EwE_LSE_N_PRS_REF']['BE']);			
+
+				demToPel.push(dataObject['EwE_HSE_1_WAR_BAU']['DemToPel']);
+				demToPel.push(dataObject['EwE_HSE_1_WAR_BSP']['DemToPel']);
+				demToPel.push(dataObject['EwE_HSE_1_WAR_REF']['DemToPel']);
+				demToPel.push(dataObject['EwE_HSE_2_WAR_BAU']['DemToPel']);
+				demToPel.push(dataObject['EwE_HSE_2_WAR_BSP']['DemToPel']);
+				demToPel.push(dataObject['EwE_HSE_2_WAR_REF']['DemToPel']);
+				demToPel.push(dataObject['EwE_HSE_N_PRS_BAU']['DemToPel']);
+				demToPel.push(dataObject['EwE_HSE_N_PRS_BSP']['DemToPel']);
+				demToPel.push(dataObject['EwE_HSE_N_PRS_REF']['DemToPel']);
+				demToPel.push(dataObject['EwE_LSE_1_WAR_BAU']['DemToPel']);
+				demToPel.push(dataObject['EwE_LSE_1_WAR_BSP']['DemToPel']);
+				demToPel.push(dataObject['EwE_LSE_1_WAR_REF']['DemToPel']);
+				demToPel.push(dataObject['EwE_LSE_2_WAR_BAU']['DemToPel']);
+				demToPel.push(dataObject['EwE_LSE_2_WAR_BSP']['DemToPel']);
+				demToPel.push(dataObject['EwE_LSE_2_WAR_REF']['DemToPel']);
+				demToPel.push(dataObject['EwE_LSE_N_PRS_BAU']['DemToPel']);
+				demToPel.push(dataObject['EwE_LSE_N_PRS_BSP']['DemToPel']);
+				demToPel.push(dataObject['EwE_LSE_N_PRS_REF']['DemToPel']);
+
+
+				simRef.push(dataObject['EwE_HSE_1_WAR_BAU']['SimRef']);
+				simRef.push(dataObject['EwE_HSE_1_WAR_BSP']['SimRef']);
+				simRef.push(dataObject['EwE_HSE_1_WAR_REF']['SimRef']);
+				simRef.push(dataObject['EwE_HSE_2_WAR_BAU']['SimRef']);
+				simRef.push(dataObject['EwE_HSE_2_WAR_BSP']['SimRef']);
+				simRef.push(dataObject['EwE_HSE_2_WAR_REF']['SimRef']);
+				simRef.push(dataObject['EwE_HSE_N_PRS_BAU']['SimRef']);
+				simRef.push(dataObject['EwE_HSE_N_PRS_BSP']['SimRef']);
+				simRef.push(dataObject['EwE_HSE_N_PRS_REF']['SimRef']);
+				simRef.push(dataObject['EwE_LSE_1_WAR_BAU']['SimRef']);
+				simRef.push(dataObject['EwE_LSE_1_WAR_BSP']['SimRef']);
+				simRef.push(dataObject['EwE_LSE_1_WAR_REF']['SimRef']);
+				simRef.push(dataObject['EwE_LSE_2_WAR_BAU']['SimRef']);
+				simRef.push(dataObject['EwE_LSE_2_WAR_BSP']['SimRef']);
+				simRef.push(dataObject['EwE_LSE_2_WAR_REF']['SimRef']);
+				simRef.push(dataObject['EwE_LSE_N_PRS_BAU']['SimRef']);
+				simRef.push(dataObject['EwE_LSE_N_PRS_BSP']['SimRef']);
+				simRef.push(dataObject['EwE_LSE_N_PRS_REF']['SimRef']);
+
+				update(bE[0], svgbe);
+				update(demToPel[0], svgdemtopel);
+				update(simRef[0], svgsimref);
+				$("#combo").html("Combo:" + Object.keys(mainDataObject)[0]);
+			});
+
+			//var ds = JSON.parse(JSON.stringify(dataset1));
+
+			var currentds = 0;
+
+			/*
+			var transitionInterval = setInterval(function () {
+				currentds++;
+				if (currentds > (demToPel.length - 1)) currentds = 0;
+				update(bE[currentds], svgbe);
+				update(demToPel[currentds], svgdemtopel);
+				update(simRef[currentds], svgsimref);
+				$("#combo").html("Combo:" + Object.keys(mainDataObject)[currentds]);
+
+			}, 2000);
+			*/
+
+			$("#chartoption").on("change", function(){
+				var slctd = $("#chartoption option:selected").val();
+				//boxupdate([profit_ACT[slctd],profit_PAS[slctd],profit_PEL[slctd]]);
+
+				update(bE[slctd], svgbe);
+				update(demToPel[slctd], svgdemtopel);
+				update(simRef[slctd], svgsimref);
+				$("#combo").html("Combo:" + Object.keys(mainDataObject)[slctd]);
+
+			});
+
+
+
+			function update(dataset, whichsvg) {
+
+				//console.log(dataset);
+
+				//dataset.forEach(function (d) {
+				//	d.date = parseDate(d.date);
+				//});
+
+				console.log(Object.keys(dataset));
+
+				color.domain(d3.keys(dataset[Object.keys(dataset)[0]]).filter(function (key) {
+					return key !== "date";
+				}));
+
+				var cities = color.domain().map(function (name) {
+					return {
+						name: name,
+						values: ( function(name) { 
+									var mapped = [];
+									for (var property in dataset) {
+										//goes through years, so property = year as string
+										if (dataset.hasOwnProperty(property) && property != '') {
+											var tempobj = {};
+											tempobj.date = parseInt(property);
+											tempobj.avgval = parseFloat(dataset[property][name]);
+											mapped.push(tempobj);
+										}
+									}
+									return mapped;
+								} (name) )
+					};
+				});
+				console.log(cities);
+
+				var minyear = 2500;
+				var maxyear = 0;
+				for (var property in dataset) {
+					//goes through years, so property = year as string
+					if (dataset.hasOwnProperty(property) && property != '') {
+						if (minyear > parseInt(property)) minyear = parseInt(property);
+						if (maxyear < parseInt(property)) maxyear = parseInt(property);
+					}
+				}
+
+				x.domain([minyear, maxyear]);
+
+				y.domain([
+					d3.min(cities, function (c) {
+						return d3.min(c.values, function (v) {
+							return v.avgval;
+						});
+					}),
+					d3.max(cities, function (c) {
+						return d3.max(c.values, function (v) {
+							return v.avgval;
+						});
+					})]);
+
+				// update axes
+				d3.transition(whichsvg).select('.y.axis')
+						.call(yAxis);
+
+				d3.transition(whichsvg).select('.x.axis')
+						.call(xAxis);
+
+				var city = whichsvg.selectAll(".city")
+						.data(cities);
+
+				var cityEnter = city.enter().append("g")
+						.attr("class", "city");
+
+				cityEnter.append("path")
+						.attr("class", "line")
+						.attr("d", function (d) {
+							return line(d.values);
+						})
+						.style("stroke", function (d) {
+							return color(d.name);
+						});
+
+				// transition by selecting 'city'...
+				cityUpdate = d3.transition(city);
+
+				// ... and each path within
+				cityUpdate.select('path')
+						.transition().duration(600)
+						.attr("d", function (d) {
+							return line(d.values);
+						});
+
+				city.exit().remove();
+
+				//clearInterval(transitionInterval);
+			}
+
+		</script>
+
+	</body>
+</html>

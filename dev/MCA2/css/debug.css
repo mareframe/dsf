@@ -1,0 +1,30 @@
+﻿#MCATool, #MCADataTable, #finalScore_div {
+	/*border : 1px solid black;*/
+
+}
+#MCAContainer {
+    text-align: center;
+    /*background-image: url("../white_leather.png");*/
+    /*background-color: linear-gradient( rgba(255, 0, 0, 0.45), rgba(255, 0, 0, 0.45) );*/
+    background:
+    /* top, transparent red, faked with gradient */
+    /*linear-gradient( rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05) ),*/ 
+        linear-gradient( rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6) ),
+    /* bottom, image */
+    url("/dev/MCA2/white_leather.png");
+    /*opacity: .5;*/
+}
+#MCAToolTitle_div {
+    /*opacity: 1;*/
+}
+#MCATool {
+    background: linear-gradient( rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6) ), url("/dev/MCA2/white_leather.png");
+} 
+#scoreAsTextTable td, th {
+    margin: 5px;
+    padding: 2px;
+    border: 1px solid #000000;
+}
+
+
+

@@ -1,0 +1,44 @@
+﻿.LoadFileBtn {
+	position: relative;
+	overflow: hidden;
+	margin: 0px;
+}
+.LoadFileBtn input.upload {
+	position: absolute;
+	top: 0;
+	right: 0;
+	margin: 0;
+	padding: 0;
+	font-size: 20px;
+	cursor: pointer;
+	opacity: 0;
+	filter: alpha(opacity=0);
+}
+/*input[type="checkbox"] {
+    display:none;
+}
+input[type="checkbox"] + label span {
+    display:inline-block;
+    width:249px;
+    height:19px;
+    /*background:url(check_radio_sheet.png) left top no-repeat;
+}*/
+.advButton {
+    margin:0;
+   /* float:left;*/
+}
+
+.button {
+    margin:0;
+}
+
+.modeStatus {
+    text-align: center;
+    font-size: 2em;
+
+}
+.ui-icon-background,
+.ui-state-active .ui-icon-background {
+	border: #aaaaaa;
+	background-color: #888888;
+}

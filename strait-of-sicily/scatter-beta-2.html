@@ -1,0 +1,1411 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<link href="dragit.css" rel="stylesheet"/>
+		<script src="pathseg.js"></script>
+		<script src="jquery-1.10.2.min.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+		<script src="d3.v3.js"></script>
+		<script src="dragit.js"></script>
+		<title>Strait of Sicily - Historical Data and Scenario Model Output</title>
+		<style>
+
+			@import url(https://fonts.googleapis.com/css?family=Droid+Serif);
+			@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+			/*Document style*/
+			h1,h2,h3,h4,h5{
+				color: #0f334a;
+				font-family: 'Droid Serif', Arial, Helvetica, sans-serif;
+			}
+
+			p,ul,ol,td,label {
+				font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+				font-weight: 400;
+				font-size: 14px;
+				line-height: 20px;
+				color: #747474;
+				text-align: justify;
+			}
+
+			th, strong {
+				color: #0f334a;
+			}
+
+			body {
+				width: 1024px;
+				margin: 0 auto;
+			}
+
+			html,body {
+				-webkit-touch-callout: none;
+				-webkit-user-select: none;
+				-khtml-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				user-select: none;
+
+			}
+
+
+			label.highlighted{
+				background: rgba(0,0,0,0.1);
+				border-radius: 3px;
+			}
+
+			/* The most incredibly lazy way to get points after the year 2008 to appear differently (historic vs simulated)*/
+			.best-case-scenario
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory +
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory +
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory + 
+			.pointTrajectory +
+			.pointTrajectory +
+			.pointTrajectory +
+			.pointTrajectory +
+			.pointTrajectory {
+				fill: #C00;
+				stroke-width: 0px;
+			}
+
+			text {
+				cursor: default;
+			}
+
+			#chart {
+				height: 506px;
+			}
+
+			text {
+				font-size: 10px;
+			}
+
+			.dot, .point {
+				stroke: #000;
+			}
+
+			.point {
+				opacity: 0.5;
+			}
+
+			.axis path, .axis line {
+				fill: none;
+				stroke: #000;
+				shape-rendering: crispEdges;
+			}
+
+			.label {
+				fill: #777;
+			}
+
+			.year.label {
+				font: 500 196px 'Droid Serif';
+				fill: #ddd;
+			}
+
+			.x.label, .y.label {
+				font-size: 14px;
+				text-shadow: 0 0 2px rgba(255, 255, 255, 1), 0 0 2px rgba(255, 255, 255, 1), 0 0 2px rgba(255, 255, 255, 1);
+			}
+
+			.country.label  {
+				font: 500 96px 'Droid Serif';
+				fill: #ddd;
+			}
+
+			.year.label.active {
+				fill: #aaa;
+			}
+
+			.tooltip-box {
+				padding: 4px;
+				background: #FFF;
+				z-index: 1000;
+				position: absolute;
+				pointer-events:none;
+				border-radius: 4px;
+				border: 1px solid #CCC;
+				font-size: 10px;
+			}
+
+			circle.pointTrajectory {
+				pointer-events: none;
+				stroke: lightgray;
+				fill: none;
+				opacity: 1;
+				stroke-width: 0px;
+				pointer-events:none;
+			}
+
+			.gDragit {
+				pointer-events:none;
+			}
+
+			path.lineTrajectory {
+				stroke-linejoin: round;
+				stroke-width: 3;
+				stroke-opacity: .5;
+				stroke: black;
+				fill: none;
+				pointer-events: none;
+			}
+
+			#timeline, #scatter{
+				height: 560px;
+			}
+
+
+			path.line {
+				stroke-linejoin: round;
+				stroke-width: 3;
+				stroke-opacity: .7;
+				stroke: black;
+				fill: none;
+			}
+
+			span[name="Grey seals"]{ font-weight: 700; color: #0099C6; }
+			span[name="Harbour seals"]{ font-weight: 700; color: #DD4477; }
+			span[name="Cetaceans"]{ font-weight: 700; color: #66AA00; }
+			span[name="Seabirds"]{ font-weight: 700; color: #B82E2E; }
+			span[name="Poor cod"]{ font-weight: 700; color: #316395; }
+			span[name="Large zooplankton"]{ font-weight: 700; color: #3366CC; }
+			span[name="Small zooplankton"]{ font-weight: 700; color: #990099; }
+			span[name="Infauna"]{ font-weight: 700; color: #DC3912; }
+			span[name="Algae"]{ font-weight: 700; color: #FF9900; }
+			span[name="Phytoplankton"]{ font-weight: 700; color: #109618; }
+			span[name="Detritus"]{ font-weight: 700; color: black; }
+
+			path.line[name="Grey seals"]{ stroke: #0099C6; }
+			path.line[name="Harbour seals"]{ stroke: #DD4477; }
+			path.line[name="Cetaceans"]{ stroke: #66AA00; }
+			path.line[name="Seabirds"]{ stroke: #B82E2E; }
+			path.line[name="Poor cod"]{ stroke: #316395; }
+			path.line[name="Large zooplankton"]{ stroke: #3366CC; }
+			path.line[name="Small zooplankton"]{ stroke: #990099; }
+			path.line[name="Infauna"]{ stroke: #DC3912; }
+			path.line[name="Algae"]{ stroke: #FF9900; }
+			path.line[name="Phytoplankton"]{ stroke: #109618; }
+
+			.selected {
+				stroke-width: 4;
+			}
+
+			button.icon:hover {
+				background-color: #DDD;
+			}
+
+			.icon {
+				border:none;
+				background: none;
+				width:21px;
+				height:21px;
+				display:inline-block;
+				background-size:cover;
+			}
+
+			.icon.icon-play {
+				background-image:url('img/ic_play_arrow_black_24px.svg');
+				opacity: 0.7;
+			}
+			.icon.icon-play[disabled] {
+				opacity: 0.3;
+			}
+			.icon.icon-pause {
+				background-image:url('img/ic_pause_black_24px.svg');
+				opacity: 0.7;
+			}
+			.icon.icon-reset {
+				background-image:url('img/ic_skip_previous_black_24px.svg');
+				opacity: 0.7;
+			}
+
+			input[type="range"] {
+				cursor:pointer;
+			}
+
+		</style>
+	</head>
+	<body class="best-case-scenario" style="background: rgba(41,137,202,1);">
+		<div style="background: #FFF;
+		     width: 1024px; padding: 20px">
+			<h1><a href="../strait-of-sicily.html">&lsaquo; Case Study: Strait of Sicily</a></h1>
+			<h2>Historical Data and Scenario Model Output</h2>
+			<div class="tooltip-box" style="display:none;">
+			</div>
+			<hr>
+			<ul class="nav nav-tabs" role="tablist">
+				<li role="presentation" class="active"><a href="scatter-beta-2.html#timeline" aria-controls="timeline" role="tab" data-toggle="tab">Timeline</a></li>
+				<li role="presentation"><a href="scatter-beta-2.html#scatter" aria-controls="scatter" role="tab" data-toggle="tab">Scatterplot (Biomass v Catches)</a></li>
+			</ul>
+			<div class="tab-content">
+				<div role="tabpanel" class="tab-pane active" id="timeline">
+					<div id="chart_timeline" style="margin:0px"></div>
+					<div>
+						<div style="width:39px;height:20px;display:table-cell;"></div>
+						<div style="width:485px;background:#EEE;height:20px;border-right: 1px dashed;vertical-align: bottom;display:table-cell;padding:5px;text-align:center;font-weight:700;font-size:12px;">Historical data</div><div 
+							style="width:458px;background: repeating-linear-gradient(
+							45deg,
+							#F8F8F8,
+							#F8F8F8 3px,
+							#EEE 3px,
+							#EEE 6px
+							);height:20px;vertical-align: bottom;display:table-cell;padding:5px;text-align:center;font-weight:700;font-size:12px;">
+							Simulated data:<select class="" style="z-index:1;" id="select-scenario">
+								<!-- <option value="bso.json">Best case scenario</option> -->
+								<!-- <option value="wso.json">Alternative case scenario</option> -->
+								<!-- <option value="currentpath.json">BAU Scenario (old)</option> -->
+								<!-- <option value="fmey.json">FMEY scenario (old)</option> -->
+								<!-- <option value="gadoids.json">Gadoids scenario (old)</option> -->
+								<option value="octdata/BAU.json?e=2">BAU Scenario</option>
+								<option value="octdata/F05.json?e=2">F05 scenario</option>
+								<option value="octdata/F15.json?e=2">F15 scenario</option>
+								<option value="octdata/F25.json?e=2">F25 scenario</option>
+								<option value="octdata/FRA.json?e=2">FRA scenario</option>
+								<option value="octdata/SEL.json?e=2">SEL scenario</option>
+							</select></div>
+					</div>
+					<div>
+						<div style="width:39px;height:20px;display:table-cell;"></div>
+						<div style="background:#F8F8F8;width:942px;height:20px;display:table-cell;padding:5px;text-align:center;font-weight:700;font-size:12px;">
+							y-axis: 
+							<select class="" style="z-index:1;" id="select-y-axis">
+								<option value="biomass">Biomass (tons)</option>
+								<option value="catch">Catch (tons)</option>
+								<option value="f">F</option>
+								<option value="grossrevenue">Gross Revenue</option>
+								<option value="grosscost">Gross Cost</option>
+								<option value="grossprofit">Gross Profit</option>
+								<option value="grossprofitpervesselday">Gross Profit Per Vessel / Day</option>
+							</select>
+						</div>
+					</div>
+				</div>
+				<div role="tabpanel" class="tab-pane" id="scatter">
+					<div id="chart" style="margin:0px"></div>
+					<div class="container-fluid">
+						<div class="row" style="margin-bottom: 20px;">
+							<div class="col-xs-2">
+								<button class="icon icon-play" style="margin-right:5px;margin-left:30px;">
+								</button>
+								<button class="icon icon-pause" style="margin-right:5px;margin-left:30px;display:none;">
+								</button>
+								<button class="icon icon-reset">
+								</button>
+								<div class="pull-right">2000</div></div>
+							<div class="col-xs-9" style="position: relative;font-weight:700;font-size:12px;">
+								<input type="range" name="points" min="2000" max="2030" value="2030" id="slider-time" style="padding:0px;width:98.1%;display:inline-block;position:absolute;z-index:1;"/>
+								<div style="position:absolute;">
+									<div style="background:#EEE;width: 485px; height: 52px;vertical-align: bottom;display:table-cell;padding:5px;text-align:center;border-right: 1px dashed;">
+										Historical data
+									</div>
+									<div style="background: repeating-linear-gradient(
+									     45deg,
+									     #F8F8F8,
+									     #F8F8F8 3px,
+									     #EEE 3px,
+									     #EEE 6px
+									     );width: 458px; height: 52px;vertical-align: bottom;display:table-cell;padding:5px;text-align:center;">
+										Simulated data <select class="" style="z-index:1;" id="select-scenario-scatter">
+											
+											<option value="BAU.json">BAU Scenario</option>
+											<option value="F05.json">F05 scenario</option>
+											<option value="F15.json">F15 scenario</option>
+											<option value="F25.json">F25 scenario</option>
+											<option value="FRA.json">FRA scenario</option>
+											<option value="SEL.json">SEL scenario</option>
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-xs-1" style="text-align:left;">2030</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="container-fluid" >
+				<div class="row">
+					<div class="col-xs-12">
+						<br />
+						<div id="theText" class="text-center" style="font-weight:700;font-size:15px;">
+							&nbsp;
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-5">
+						<h3>All
+						</h3>
+						<div class="container-fluid">
+							<div class="row" id="allspecieschecks">
+								<div class="col-xs-6">
+									<div class="checkbox">
+										<label><input type="checkbox" autocomplete="off" checked value="All groups"/>All groups</label><br/>
+									</div>
+								</div>
+								<div class="col-xs-6">
+									<div class="checkbox">
+										&nbsp;
+									</div>
+								</div>
+							</div>
+						</div>
+						<h3>Fish
+							<div class="pull-right">
+								<button class="btn btn-xs btn-default select-all" value="Fish">Select All</button>
+								<button class="btn btn-xs btn-default deselect-all" value="Fish">Deselect All</button>
+							</div>
+						</h3>
+						<div class="container-fluid">
+							<div class="row" id="fishchecks">
+								<div class="col-xs-6">
+									<div class="checkbox">
+										<label><input type="checkbox" autocomplete="off" checked value="Anchovies"/>Anchovies</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Sardine"/>Sardine</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Hake"/>Hake</label><br/>
+									</div>
+								</div>
+								<div class="col-xs-6">
+									<div class="checkbox">
+										<label><input type="checkbox" autocomplete="off" checked value="Red sea bream"/>Red sea bream</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Red mullet"/>Red mullet</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Mackerel"/>Mackerel</label><br/>
+									</div>
+								</div>
+							</div>
+						</div>
+						<h3>Crustaceans
+							<div class="pull-right">
+								<button class="btn btn-xs btn-default select-all" value="Crustaceans">Select All</button>
+								<button class="btn btn-xs btn-default deselect-all" value="Crustaceans">Deselect All</button>
+							</div>
+						</h3>
+						<div class="container-fluid">
+							<div class="row">
+								<div class="col-xs-12">
+									<div class="checkbox">
+										<label><input type="checkbox" autocomplete="off" checked value="Deep water rose shrimp"/>Deep water rose shrimp</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Giant red prawn"/>Giant red prawn</label><br/>
+									</div>
+								</div>
+							</div>
+						</div>
+						<h3>Other
+							<div class="pull-right">
+								<button class="btn btn-xs btn-default select-all" value="Other">Select All</button>
+								<button class="btn btn-xs btn-default deselect-all" value="Other">Deselect All</button>
+							</div>
+						</h3>
+						<div class="container-fluid">
+							<div class="row">
+								<div class="col-xs-12">
+									<div class="checkbox">
+										<label><input type="checkbox" autocomplete="off" checked value="All cephalopods"/>All cephalopods</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="All other pelagic"/>All other pelagic</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Small pelagics"/>Small pelagics</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Demersal fish"/>Demersal fish</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Decapod crustacean"/>Decapod crustacean</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Piscivorous"/>Piscivorous</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Benthivorous"/>Benthivorous</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Planktivorous"/>Planktivorous</label><br/>		
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-xs-7">
+						<div class="container-fluid">
+							<h3>&nbsp;</h3>
+							<!--
+							<div class="row">
+								<div class="col-xs-8">
+									<div id="chart_vertebates"></div>
+									<p class="text-center">Change in Biomass over time</p>
+								</div>
+								<div class="col-xs-4">
+									<p>
+										<span name="Grey seals">&mdash; Grey seals</span><br>
+										<span name="Poor cod">&mdash; Poor cod</span><br>
+										<span name="Seabirds">&mdash; Seabirds</span><br>
+										<span name="Cetaceans">&mdash; Cetaceans</span><br>
+										<span name="Harbour seals">&mdash; Harbour seals</span><br>
+									</p>
+								</div>
+							</div>
+							<h3>Invertebrates</h3>
+							<div class="row">
+								<div class="col-xs-8">
+									<div id="chart_invertebates"></div>
+									<p class="text-center">Change in Biomass over time</p>
+								</div>
+								<div class="col-xs-4">
+									<p>
+										<span name="Phytoplankton">&mdash; Phytoplankton</span><br>
+										<span name="Large zooplankton">&mdash; Large zooplankton</span><br>
+										<span name="Small zooplankton">&mdash; Small zooplankton</span><br>
+										<span name="Infauna">&mdash; Infauna</span><br>
+										<span name="Algae">&mdash; Algae</span><br>
+									</p>
+								</div>
+							</div>
+							<h3>Detritus</h3>
+							<div class="row">
+								<div class="col-xs-8">
+									<div id="chart_detritus"></div>
+									<p class="text-center">Change in Biomass over time</p>
+								</div>
+								<div class="col-xs-4">
+									<p>
+										<span name="Detritus">&mdash; Detritus</span><br>
+									</p>
+								</div>
+							</div>
+							-->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<br>
+		<!--<p>
+		Original creation by <a href="http://www.gapminder.org/world/">Gapminder</a> using <a href="https://github.com/RandomEtc/mind-gapper-js">Tom Carden</a> JavaScript version.<br>
+		Recreation by <a href="http://bost.ocks.org/mike/nations/">Mike Bostock</a> with <a href="http://d3js.org/">D3.js</a>.<br>
+		Re-Recreation using <a href="http://romsson.github.io/dragit/">dragit.js</a> by <a href="http://romain.vuillemot.net/">Romain Vuillemot</a> (view <a href="https://github.com/romsson/dragit/blob/master/example/nations.html">source</a> on GitHub).-->
+
+		<script>
+		// Various accessors that specify the four dimensions of data to visualize.
+			function x(d) {
+				return d.biomass;
+			}
+			function y(d) {
+				return d.catch;
+			}
+			function radius(d) {
+				return d.f;
+			}
+			function color(d) {
+				return d.region;
+			}
+			function key(d) {
+				return d.name;
+			}
+			var selected_y_axis = "biomass";
+			var speed = 10;
+			var playing = false;
+			var externallink;
+			var cached = false;
+			var cached_interpolatedData = {};
+
+			function randomize_dataset() {
+				if (externallink) {
+					for (var i = 0; i < externallink.length; i++) {
+						for (var u = 0; u < externallink[i].biomass.length; u++) {
+							externallink[i].biomass[u][1] = externallink[i].biomass[u][1] * (Math.random() * 0.2 + 0.9);
+							externallink[i].catch[u][1] = externallink[i].catch[u][1] * (Math.random() * 0.2 + 0.9);
+							externallink[i].f[u][1] = externallink[i].f[u][1] * (Math.random() * 0.2 + 0.9);
+						}
+					}
+				}
+			}
+
+			var whoah;
+		// Chart dimensions.
+			var margin = {top: 19.5, right: 19.5, bottom: 19.5, left: 69.5},
+			width = 930 - margin.right,
+				height = 500 - margin.top - margin.bottom;
+
+		// Various scales. These domains make assumptions of data, naturally.
+			var xScale = d3.scale.linear().domain([0.00000, 1700000]).range([0, width]),
+				yScale = d3.scale.linear().domain([0.00000, 350000]).range([height, 0]),
+				radiusScale = d3.scale.sqrt().domain([0, 100]).range([1, 10]),
+				colorScale = d3.scale.category20();
+
+		// The x & y axes.
+			var xAxis = d3.svg.axis().orient("bottom").scale(xScale),
+				yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+		// Create the SVG container and set the origin.
+			var svg = d3.select("#chart").append("svg")
+				.attr("width", width + margin.left + margin.right)
+				.attr("height", height + margin.top + margin.bottom)
+				.append("g")
+				.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+				.attr("class", "gRoot")
+
+		// Add the x-axis.
+			svg.append("g")
+				.attr("class", "x axis")
+				.attr("transform", "translate(0," + height + ")")
+				.call(xAxis);
+
+		// Add the y-axis.
+			svg.append("g")
+				.attr("class", "y axis")
+				.call(yAxis);
+
+		// Add an x-axis label.
+			var svg_x_axis_label = svg.append("text")
+				.attr("class", "x label")
+				.attr("text-anchor", "end")
+				.attr("x", width)
+				.attr("y", height - 6)
+				.text("Biomass (tons"); //tons / km
+		
+			svg_x_axis_label.append("tspan")
+				.attr("dy", -5)
+				.text(""); //2
+			svg_x_axis_label.append("tspan")
+				.attr("dy", 5)
+				.text(")");
+
+		// Add a message to the top right hand corner of the graph illustrating
+		// what the size of the circles represents
+			svg.append("text")
+				.attr("class", "x label")
+				.attr("text-anchor", "end")
+				.attr("x", width)
+				.attr("y", 0)
+				.text("Radii of circles represent value (GBP) of catch");
+
+		// Add a y-axis label.
+			var svg_y_axis_label = svg.append("text")
+				.attr("class", "y label")
+				.attr("text-anchor", "end")
+				.attr("y", 6)
+				.attr("dy", ".75em")
+				.attr("transform", "rotate(-90)")
+				.text("Catch (tons"); //tons / km
+
+			svg_y_axis_label.append("tspan")
+				.attr("dy", -5)
+				.text(""); //2
+			svg_y_axis_label.append("tspan")
+				.attr("dy", 5)
+				.text(")");
+
+		// Add the year label; the value is set on transition.
+			var label = svg.append("text")
+				.attr("class", "year label")
+				.attr("text-anchor", "end")
+				.attr("y", height - 24)
+				.attr("x", width)
+				.text(2030);
+
+		// Add the country label; the value is set on transition.
+			var countrylabel = svg.append("text")
+				.attr("class", "country label")
+				.attr("text-anchor", "start")
+				.attr("y", 80)
+				.attr("x", 20)
+				.text(" ");
+
+
+		// timeline svg
+		// Various scales. These domains make assumptions of data, naturally.
+			var xScale_t = d3.scale.linear().domain([2000, 2030]).range([0, width]),
+				yScale_t = d3.scale.linear().domain([0.00000, 1600000]).range([height, 0]),
+				radiusScale_t = d3.scale.sqrt().domain([0, 100]).range([1, 10]),
+				colorScale_t = d3.scale.category20();
+
+		// The x & y axes.
+			var xAxis_t = d3.svg.axis().orient("bottom").scale(xScale_t).tickFormat(d3.format("d")),
+				yAxis_t = d3.svg.axis().scale(yScale_t).orient("left");
+
+			var svg_t = d3.select("#chart_timeline").append("svg")
+				.attr("width", width + margin.left + margin.right)
+				.attr("height", height + margin.top + margin.bottom)
+				.append("g")
+				.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+				.attr("class", "gRoot");
+
+		// Add the x-axis.
+			svg_t.append("g")
+				.attr("class", "x axis")
+				.attr("transform", "translate(0," + height + ")")
+				.call(xAxis_t);
+
+		// Add the y-axis.
+			svg_t.append("g")
+				.attr("class", "y axis")
+				.call(yAxis_t);
+
+		// Add an x-axis label.
+			var svg_t_x_axis_label = svg.append("text")
+				.attr("class", "x label")
+				.attr("text-anchor", "end")
+				.attr("x", width)
+				.attr("y", height - 6)
+				.text("Biomass (tons"); //tons / km
+
+			svg_t_x_axis_label.append("tspan")
+				.attr("dy", -5)
+				.text(""); //2
+			svg_t_x_axis_label.append("tspan")
+				.attr("dy", 5)
+				.text(")");
+
+		// Add a y-axis label.
+			var svg_t_y_axis_label = svg.append("text")
+				.attr("class", "y label")
+				.attr("text-anchor", "end")
+				.attr("y", 6)
+				.attr("dy", ".75em")
+				.attr("transform", "rotate(-90)")
+				.text("Catch (tons"); //tons / km
+
+			svg_t_y_axis_label.append("tspan")
+				.attr("dy", -5)
+				.text(""); //2
+			svg_t_y_axis_label.append("tspan")
+				.attr("dy", 5)
+				.text(")");
+
+			svg_t.append("svg:line")
+				.attr("class", 'd3-dp-line')
+				.attr("x1", xScale_t(2015))
+				.attr("y1", yScale_t(0))
+				.attr("x2", xScale_t(2015))
+				.attr("y2", yScale_t(120*70000))
+				.style("stroke-dasharray", ("3, 3"))
+				.style("stroke-opacity", 0.9)
+				.style("stroke", "black");
+   
+			var first_time = true;
+
+		// Load the data.
+			//$('#fishchecks input:checkbox').prop('checked', false);
+			//$('#fishchecks input:checkbox').trigger('click');
+			
+			d3.json("octdata/BAU.json?e=2", function (nations) {
+
+				// We will no load in three other managent scenarious
+				/*d3.json("fish-worst-case.json", function(nations) {
+		 
+				 });*/
+		
+				externallink = nations;
+
+				var to_add_to_v = ["Grey seals", "Harbour seals", "Cetaceans", "Seabirds", "Poor cod"];
+				var to_add_to_iv = ["Large zooplankton", "Small zooplankton", "Infauna", "Algae", "Phytoplankton"]
+				var to_add_to_d = ["Detritus"]
+				var line_v = [];
+				var line_iv = [];
+				var line_d = [];
+
+				for (var i = 0; i < nations.length; i++) {
+					var svg_ti;
+					var xScale_ti;
+					var yScale_ti;
+					if (1) {
+						// Add to the main timeline
+						var line = d3.svg.line()
+							.x(function (d) {
+								return xScale_t(d[0]);
+							})
+							.y(function (d) {
+								return yScale_t(d[1]);
+							});
+						var d_path = svg_t.insert("path", ":first-child")
+							.datum(nations[i].biomass)
+							.attr("class", "line line-graph")
+							.attr("name", nations[i].name)
+							.style("stroke", function (d) {
+								return colorScale_t(color(nations[i]));
+							})
+							.attr("d", line);
+						for (var u = 0; i, u < nations[i].biomass.length; u++) {
+							var dot = svg_t.append("circle")
+								.datum( {i: i, u: u } )
+								.attr("class", "point")
+								.attr("name", nations[i].name + "-" + nations[i].biomass[u][0])
+								.attr("cx", function (d) {
+									return xScale_t(nations[i].biomass[u][0]);
+								})
+								.attr("cy", function (d) {
+									return yScale_t(nations[i].biomass[u][1]);
+								})
+								.attr("r", 2)
+								.on("mouseover", function (d) {
+									var datum = d3.select(this).datum();
+									$(".tooltip-box").css("left", d3.event.pageX).css("top", d3.event.pageY + 20).show();
+									$(".tooltip-box").html( 
+										nations[datum.i].name +
+										"<br>Year: " + parseFloat((nations[datum.i].biomass[datum.u][0])) + " " +
+										"<br>Biomass: " + parseFloat((nations[datum.i].biomass[datum.u][1]).toPrecision(3)) + " tons" +
+										"<br>Catch: " + parseFloat((nations[datum.i].catch[datum.u][1]).toPrecision(3)) + " tons" +
+										"<br>F: &pound;" + parseFloat((nations[datum.i].f[datum.u][1]).toPrecision(3) * 1000).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " "
+										);
+								
+								
+								})
+								.on("mouseout", function (d) {
+									$(".tooltip-box").hide();
+								});
+						}
+						continue;
+					}
+					var line = d3.svg.line()
+						.x(function (d) {
+							return xScale_ti(d[0]);
+						})
+						.y(function (d) {
+							return yScale_ti(d[1]);
+						})
+
+					var d_path = svg_ti.insert("path", ":first-child")
+						.datum(nations[i].biomass)
+						.attr("class", "line line-graph")
+						.attr("name", nations[i].name)
+						.attr("transform", "translate(-10," + 0 + ")")
+						.attr("d", line);
+				}
+
+				/*var line = d3.svg.line()
+				 .x(function(d) { return xScale_d(d[0]); })
+				 .y(function(d) { return yScale_d(d[1]); });
+		 
+				 //add line data to graph
+				 var d_path = svg_d.append("path")
+				 .datum(nations[40].biomass)
+				 .attr("class", "detritus-line")
+				 .attr("transform", "translate(-10," + 0 + ")")
+				 .attr("d", line);*/
+
+				// A bisector since many nation's data is sparsely-defined.
+				var bisect = d3.bisector(function (d) {
+					return d[0];
+				});
+
+				//console.log(d3.selectAll(".dot").data().property.data);
+
+				// Add a dot per nation. Initialize the data at 1800, and set the colors.
+				var dot = svg.append("g")
+					.attr("class", "dots")
+					.selectAll(".dot")
+					.data(interpolateData(2000))
+					.enter().append("circle")
+					.attr("class", "dot")
+					.style("fill", function (d) {
+						console.log(d);
+						return colorScale(color(d));
+					})
+					.call(position)
+					.on("mousedown", function (d, i) {
+
+					})
+					.on("mouseup", function (d, i) {
+						dot.classed("selected", false);
+						d3.select(this).classed("selected", !d3.select(this).classed("selected"));
+						dragit.trajectory.display(d, i, "selected");
+
+						//TODO: test if has been dragged
+						// Look at the state machine history and find a drag event in it?
+
+					})
+					.on("mouseenter", function (d, i) {
+						clear_demo();
+						if (dragit.statemachine.current_state == "idle") {
+							dragit.trajectory.display(d, i)
+							dragit.utils.animateTrajectory(dragit.trajectory.display(d, i), dragit.time.current, 3000)
+							countrylabel.text(d.name);
+							dot.style("opacity", .4)
+							d3.select(this).style("opacity", 1)
+							d3.selectAll(".selected").style("opacity", 1)
+							//if(){
+							//}
+						}
+						$("input[type='checkbox'][value='" + d.name + "']").parent().addClass("highlighted");
+					})
+					.on("mousemove", function (d, i, c) {
+						$(".tooltip-box").css("left", d3.event.pageX).css("top", d3.event.pageY + 20).show();
+						$(".tooltip-box").html(("Value: £" + parseFloat((radius(d) * 1000).toPrecision(3))).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") +
+							"<br>Biomass: " + parseFloat((x(d)).toPrecision(3)) + " tons/" +
+							"<br>Catch: " + parseFloat((y(d)).toPrecision(3)) + " tons/"
+							)
+					})
+					.on("mouseleave", function (d, i) {
+						$(".tooltip-box").hide();
+						if (dragit.statemachine.current_state == "idle") {
+							countrylabel.text("");
+							dot.style("opacity", 1);
+						}
+						$("input[type='checkbox'][value='" + d.name + "']").parent().removeClass("highlighted");
+						//if($(".dot.selected").length>0){
+						//while($(".gDragit.selected").length>1){
+						//$(".gDragit.selected:last-of-type").remove();
+						//}
+						//} else {
+						d3.selectAll(".gDragit.selected").remove();
+						dragit.trajectory.remove(d, i);
+						//}
+					})
+					.call(dragit.object.activate)
+				// Add a title.
+				dot.attr("name", function (d) {
+					return d.name
+				})
+				//.append("title")
+				//.text(function(d) { return d; });
+
+
+				// Start a transition that interpolates the data based on year.
+				svg.transition()
+					.duration(30000)
+					.ease("linear")
+
+				// Positions the dots based on data.
+				function position(dot) {
+					dot.transition().duration(speed).ease("linear")
+						.attr("cx", function (d) {
+							return xScale(x(d));
+						})
+						.attr("cy", function (d) {
+							return yScale(y(d));
+						})
+						.attr("r", function (d) {
+							return radiusScale(radius(d));
+						});
+
+					dot.select("title").text(function (d) {
+						return ("£" + parseFloat((radius(d) * 1000).toPrecision(3))).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+					})
+				}
+
+				// Defines a sort order so that the smallest dots are drawn on top.
+				function order(a, b) {
+					return radius(b) - radius(a);
+				}
+
+				// Updates the display to show the specified year.
+				function displayYear(year) {
+					dot.data(interpolateData(year), key).call(position).sort(order);
+					label.text(Math.floor(year));
+					//for (var i = 0; i < redundant_graphs_indicator.length; i++) {
+					//	redundant_graphs_indicator[i].transition().duration(speed).ease("linear").attr("x1", redundant_graphs_xScale[i](year)).attr("x2", redundant_graphs_xScale[i](year));
+					//}
+				}
+
+				// Interpolates the dataset for the given (fractional) year.
+				function interpolateData(year) {
+					//console.log(year)
+					if (cached) {
+						return cached_interpolatedData[year];
+					} else {
+						for (var i = 2000; i <= 2030; i++) {
+							cached_interpolatedData[i] = nations.map(function (d) {
+								//var test = interpolateValues(d.value, i);
+								//if (test == 100) console.log(d.name);
+								return {
+									name: d.name,
+									region: d.region,
+									biomass: interpolateValues(d.biomass, i),
+									catch: interpolateValues(d.catch, i),
+									f: interpolateValues(d.f, i)
+								};
+							});
+						}
+						cached = true;
+						return cached_interpolatedData[year];
+					}
+				}
+
+				// Finds (and possibly interpolates) the value for the specified year.
+				function interpolateValues(values, year) {
+					
+					var i = bisect.left(values, year, 0, values.length - 1),
+						a = values[i];
+					if (typeof(a) == 'undefined') {
+						//console.log("interpolateValues could find no values for the year:" + year);
+						return 0;
+					}
+					if (i > 0) {
+						var b = values[i - 1],
+							t = (year - a[0]) / (b[0] - a[0]);
+						return a[1] * (1 - t) + b[1] * t;
+					}
+					return a[1];
+				}
+
+
+
+				init();
+
+				function update(v, duration) {
+					dragit.time.current = v || dragit.time.current;
+					displayYear(2000 + dragit.time.current)
+					d3.select("#slider-time").property("value", 2000 + dragit.time.current);
+				}
+
+				function init() {
+
+					dragit.init("#chart .gRoot");
+
+					dragit.time = {min: 2000, max: 2030, step: 1, current: 2030}
+					dragit.data = d3.range(nations.length).map(function () {
+						return Array();
+					})
+
+					nations.map(function (d) {
+						if (d.name == "Grey seals" || d.name == "Harbour seals" || d.name == "Cetaceans" || d.name == "Seabirds" || d.name == "Poor cod" || d.name == "Large zooplankton" || d.name == "Small zooplankton" || d.name == "Infauna" || d.name == "Algae" || d.name == "Phytoplankton" || d.name == "Detritus") {
+							$(".dot[name='" + d.name + "']").each(function () {
+								$(this).attr("class", $(this).attr("class") + " hidden");
+							});
+						}
+					});
+
+					for (var yy = 2000; yy < 2031; yy++) {
+
+						interpolateData(yy).filter(function (d, i) {
+							dragit.data[i][yy - dragit.time.min] = [xScale(x(d)), yScale(y(d))];
+
+						})
+					}
+
+					dragit.evt.register("update", update);
+
+					d3.select("#slider-time").property("value", dragit.time.current);
+
+					d3.select("#slider-time")
+						.on("input", function () {
+							displayYear(parseInt(this.value), 500);
+							clear_demo();
+						})
+						.on("change", function () {
+							displayYear(parseInt(this.value), 500);
+							clear_demo();
+						})
+						.on("mousedown", function () {
+							speed = 10;
+							$(".icon-pause").click();
+						})
+
+					d3.selectAll(".dot")
+						.on("mousedown", function () {
+							speed = 10;
+							$(".icon-pause").click();
+						})
+						
+					d3.select("#select-scenario")
+						.on("change", function () {
+							//console.log("there was an input!")
+							d3.json($(this).val() + '?t=2', function (new_nations) {
+								cached = false;
+								nations = new_nations;
+								rescaleGraph();
+								//rescaleBiomassGraphs();
+								rescaleTimelineGraph();
+							});
+							$("#select-scenario-scatter").val($("#select-scenario").val());
+							updateInfo($(this).val());
+						});
+
+					d3.select("#select-scenario-scatter")
+						.on("change", function () {
+							//console.log("there was an input!")
+							d3.json($(this).val(), function (new_nations) {
+								cached = false;
+								nations = new_nations;
+								rescaleGraph();
+								//rescaleBiomassGraphs();
+								rescaleTimelineGraph();
+							});
+							$("#select-scenario").val($("#select-scenario-scatter").val());
+							updateInfo($(this).val());
+						});
+
+					d3.select("#select-y-axis")
+						.on("change", function () {
+							selected_y_axis = $(this).val();
+							rescaleTimelineGraph();
+						});
+
+
+					var end_effect = function () {
+						countrylabel.text("");
+						dot.style("opacity", 1)
+					}
+
+					dragit.evt.register("dragend", end_effect);
+
+					var show_nation = function (nation) {
+						$(".dot[name='" + nation + "']").each(function () {
+							$(this).attr("class", $(this).attr("class").replace(" hidden", ""));
+						});
+						$(".line[name='" + nation + "']").each(function () {
+							$(this).attr("class", $(this).attr("class").replace(" hidden", ""));
+						});
+						$(".point[name^='" + nation + "']").each(function () {
+							$(this).attr("class", $(this).attr("class").replace(" hidden", ""));
+						});
+					}
+
+					var hide_nation = function (nation) {
+						$(".dot[name='" + nation + "']").each(function () {
+							if ($(this).attr("class").indexOf("hidden") == -1)
+								$(this).attr("class", $(this).attr("class") + " hidden");
+						});
+						$(".line[name='" + nation + "']").each(function () {
+							if ($(this).attr("class").indexOf("hidden") == -1)
+								$(this).attr("class", $(this).attr("class") + " hidden");
+						});
+						$(".point[name^='" + nation + "']").each(function () {
+							if ($(this).attr("class").indexOf("hidden") == -1)
+								$(this).attr("class", $(this).attr("class") + " hidden");
+						});
+					}
+
+					var rescaleBiomassGraphs = function () {
+
+					}
+
+					var rescaleTimelineGraph = function () {
+						// calculate the maximum 
+						var max_y = 0.001;
+						for (var i = 0; i < nations.length; i++) {
+							if ($(".dot[name='" + nations[i].name + "']").attr("class").indexOf(" hidden") >= 0) {
+								//console.log("ignored!")
+							} else {
+								for (var u = 0; u < nations[i][selected_y_axis].length; u++) {									
+									console.log("count");
+									if (nations[i][selected_y_axis][u][1] > max_y)
+										max_y = nations[i][selected_y_axis][u][1];
+								}
+							}
+						}
+						
+						//console.log("max_y:" + max_y);
+						// change the scale
+						yScale_t = d3.scale.linear().domain([0.0000, max_y]).range([height, 0]);
+						yAxis_t = d3.svg.axis().scale(yScale_t).orient("left");
+						svg_t.selectAll("g.y.axis").transition().duration(speed).ease("linear").call(yAxis_t);
+						// arrange the dots
+						for (var i = 0; i < nations.length; i++) {
+							for (var u = 0; u < nations[i][selected_y_axis].length; u++) {
+								svg_t.selectAll(".point[name='" + nations[i].name + "-" + nations[i][selected_y_axis][u][0] + "']")
+									.transition().duration(1000).ease("linear")
+									.attr("cy", (yScale_t(nations[i][selected_y_axis][u][1])))
+							}
+						}
+						// arrange the lines
+						/*
+						for (var i = 0; i < nations.length; i++) {
+							var line = d3.svg.line()
+								.y(function (d) {
+									return yScale_t(d[1]);
+								});
+							var d_path = svg_t.selectAll(".line[name='" + nations[i].name + "']")
+								.datum(nations[i][selected_y_axis])
+								.transition().duration(10000).ease("linear")
+								.attr("d", line);
+							console.log("lines...");
+						} */
+		
+						for (var i = 0; i < nations.length; i++) {
+							var line = d3.svg.line()
+								.x(function (d) {
+									return xScale_t(d[0]);
+								})
+								.y(function (d) {
+									return yScale_t(d[1]);
+								});
+							var d_path = svg_t.selectAll(".line[name='" + nations[i].name + "']")
+								.datum(nations[i][selected_y_axis])
+								.transition().duration(1000).ease("linear")
+								.attr("d", line);
+						}	
+		
+		
+					}
+
+					var rescaleGraph = function () {
+						speed = 1000;
+						var max_x = 0.02;
+						var max_y = 0.001;
+						var max_r = 0.001;
+
+						for (var yy = 2000; yy <= 2030; yy++) {
+							interpolateData(yy).filter(function (d, i) {
+								//console.log(d.name);
+								//console.log($(".dot[name='"+d.name+"']").attr("class"));
+								if ($(".dot[name='" + d.name + "']").attr("class").indexOf(" hidden") >= 0) {
+									//console.log("ignored!")
+								} else {
+									if (x(d) > max_x)
+										max_x = x(d);
+									if (y(d) > max_y)
+										max_y = y(d);
+									if (radius(d) > max_r)
+										max_r = radius(d);
+								}
+								//dragit.data[i][yy-dragit.time.min] = [xScale(x(d)), yScale(y(d))];
+							});
+						}
+						xScale = d3.scale.linear().domain([0.0000, max_x]).range([0, width]);
+						yScale = d3.scale.linear().domain([0.0000, max_y]).range([height, 0]);
+						radiusScale = d3.scale.sqrt().domain([0, max_r]).range([3, 30]);
+						xAxis = d3.svg.axis().orient("bottom").scale(xScale);
+						yAxis = d3.svg.axis().scale(yScale).orient("left")
+						svg.selectAll("g.x.axis").transition().duration(speed).ease("linear").call(xAxis);
+						svg.selectAll("g.y.axis").transition().duration(speed).ease("linear").call(yAxis);
+						for (var yy = 2000; yy <= 2030; yy++) {
+
+							interpolateData(yy).filter(function (d, i) {
+								dragit.data[i][yy - dragit.time.min] = [xScale(x(d)), yScale(y(d))];
+
+							})
+						}
+						d3.selectAll(".gDragit.selected").remove();
+						displayYear(parseInt(d3.select("#slider-time").property("value")), 0);
+						setTimeout(function () {
+							speed = 10;
+						}, 1000);
+					}
+
+					whoah = rescaleGraph;
+					whoah2 = rescaleBiomassGraphs;
+
+					d3.selectAll("button.deselect-all,button.select-all").on("click", function () {
+						var select = [];
+						if ($(this).val() == "Fish") {
+							select = ["Anchovies",
+								"Sardine",
+								"Hake",
+								"Red sea bream",
+								"Red mullet",
+								"Mackerel"];
+						} else if ($(this).val() == "Crustaceans") {
+							select = ["Deep water rose shrimp",
+								"Giant red prawn"];
+						} else if ($(this).val() == "Other") {
+							select = ["All cephalopods",
+								"All other pelagic",
+								"Small pelagics",
+								"Demersal fish",
+								"Decapod crustacean",
+								"Piscivorous",
+								"Benthivorous",
+								"Planktivorous"];
+						}
+						for (var i = 0; i < select.length; i++) {
+							if ($(this).hasClass("deselect-all")) {
+								$("input[type='checkbox'][value='" + select[i] + "']").prop('checked', false);
+								hide_nation(select[i]);
+							} else {
+								$("input[type='checkbox'][value='" + select[i] + "']").prop('checked', true);
+								show_nation(select[i]);
+							}
+						}
+						rescaleGraph();
+						rescaleTimelineGraph();
+					});
+
+					d3.selectAll("input[type='checkbox']").on("click", function () {
+						if ($(this).is(':checked')) {
+							show_nation($(this).val());
+						} else {
+							hide_nation($(this).val());
+						}
+						rescaleGraph();
+						rescaleTimelineGraph();
+					});
+
+					$("input[type='checkbox']").parent()
+						.on("mouseenter", function () {
+							var m = document.createEvent('Event');
+							m.initEvent('mouseenter', true, true);
+							$(".dot[name='" + $(this).find("input[type='checkbox']").val() + "']")[0].dispatchEvent(m);
+						})
+						.on("mouseleave", function () {
+							var m = document.createEvent('Event');
+							m.initEvent('mouseleave', true, true);
+							$(".dot[name='" + $(this).find("input[type='checkbox']").val() + "']")[0].dispatchEvent(m);
+						});
+										
+					function clearFish() {
+						select = ["All groups", "Anchovies",
+									"Sardine",
+									"Hake",
+									"Red sea bream",
+									"Red mullet",
+									"Mackerel",
+									"Monkfish",
+									"Mackerel",
+									"Deep water rose shrimp",
+									"Giant red prawn",
+									"All cephalopods",
+									"All other pelagic",
+									"Small pelagics",
+									"Demersal fish",
+									"Decapod crustacean",
+									"Piscivorous",
+									"Benthivorous",
+									"Planktivorous"
+								];
+
+						for (var i = 0; i < select.length; i++) {
+							$("input[type='checkbox'][value='" + select[i] + "']").prop('checked', false);
+							hide_nation(select[i]);
+							
+							$("input[type='checkbox'][value='" + select[i] + "']").parent().css('color', colorScale_t(select[i]));
+							//alert(colorScale_t(select[i]));
+						}
+						//rescaleGraph();
+						//rescaleTimelineGraph();		
+					}						
+						
+					rescaleGraph();
+					//rescaleBiomassGraphs();
+					rescaleTimelineGraph();
+					clearFish();
+					updateInfo($('#select-scenario :selected').val());
+				}
+
+				function updateInfo(selectval) {
+					var theText = "";
+					
+					switch (selectval) {
+						case 'BAU.json':
+							theText = "Business As Usual";
+							break;
+						case 'F25.json':
+							theText = "25% annual reduction from 2015 to 2020 for HKE and DPS that is reaching F_MSY for HKE by 2020";
+							break;
+						case 'F05.json':
+							theText = "5% annual reduction from 2015 to 2020 for HKE and DPS that is reaching F_MSY forDPS by 2020";
+							break;
+						case 'FRA.json':
+							theText = "Fishing Restricted Areas";
+							break;
+						case 'F15.json':
+							theText = "15% annual reduction from 2015 to 2020 for HKE and DPS";
+							break;
+						case 'SEL.json':
+							theText = "Selectivity gear improvement";
+							break;
+						default: 
+							theText = "";
+					}
+					
+					$('#theText').html(theText);
+					
+				}
+
+				function clear_demo() {
+					if (first_time) {
+						svg.transition().duration(0);
+						first_time = false;
+						window.clearInterval(demo_interval);
+						countrylabel.text("");
+						dragit.trajectory.removeAll();
+						d3.selectAll(".dot").style("opacity", 1)
+					}
+				}
+
+				function play_demo() {
+
+					var ex_nations = ["Mackerel", "Anchovies"]
+					var index_random_nation = null;
+					var random_index = Math.floor(Math.random() * ex_nations.length);
+					var random_nation = nations.filter(function (d, i) {
+						if (d.name == ex_nations[random_index]) {
+							index_random_nation = i;
+							return true;
+						}
+					})[0];
+
+					var random_nation = nations[index_random_nation];
+
+					dragit.trajectory.removeAll();
+					dragit.trajectory.display(random_nation, index_random_nation);
+					countrylabel.text(random_nation.name);
+
+					dragit.utils.animateTrajectory(dragit.lineTrajectory, dragit.time.min, 3000)
+
+					d3.selectAll(".dot").style("opacity", .4)
+
+					d3.selectAll(".dot").filter(function (d) {
+						return d.name == random_nation.name;
+					}).style("opacity", 1)
+				}
+
+				var demo_interval = null;
+
+				setTimeout(function () {
+					if (first_time) {
+						play_demo()
+						demo_interval = setInterval(play_demo, 4000)
+					}
+				}, 1000);
+
+				displayYear(parseInt(d3.select("#slider-time").property("value")), 0);
+
+				var nextframe = function () {
+					if (!playing)
+						return;
+					speed = 1000;
+					var m = document.createEvent('Event');
+					m.initEvent('input', true, true);
+					$("#slider-time").val(parseInt($("#slider-time").val()) + 1)[0].dispatchEvent(m);
+					if (parseInt($("#slider-time").val()) >= 2030) {
+						$(".icon-pause").click();
+						return;
+					}
+					setTimeout(nextframe, 1000);
+				}
+
+				$(".icon-reset").click(function () {
+					speed = 10;
+					var m = document.createEvent('Event');
+					m.initEvent('input', true, true);
+					$("#slider-time").val(1)[0].dispatchEvent(m);
+					$(".icon-pause").click();
+					playing = false;
+				});
+
+				$(".icon-play").click(function () {
+					if (parseInt($("#slider-time").val()) >= 2030) {
+						$(".icon-reset").click();
+						setTimeout(function () {
+							$(".icon-play").click();
+						}, 1000);
+						return;
+					}
+					$(".icon-play").hide();
+					$(".icon-pause").show();
+					playing = true;
+					nextframe();
+				});
+
+				$(".icon-pause").click(function () {
+					$(".icon-pause").hide();
+					$(".icon-play").show();
+					speed = 10;
+					playing = false;
+				});
+
+
+			});
+
+
+		</script>
+	</body>
+</html>

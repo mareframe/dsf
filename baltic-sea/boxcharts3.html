@@ -1,0 +1,667 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<link href="dragit.css" rel="stylesheet"/>
+		<script src="pathseg.js"></script>
+		<script src="jquery-1.10.2.min.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+		<script src="d3.v3.js"></script>
+		<script src="dragit.js"></script>
+		<script src="box.js"></script>
+		<title>Baltic Sea</title>
+		<style>
+
+			@import url(https://fonts.googleapis.com/css?family=Droid+Serif);
+			@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+			/*Document style*/
+			h1,h2,h3,h4,h5{
+				color: #0f334a;
+				font-family: 'Droid Serif', Arial, Helvetica, sans-serif;
+			}
+
+			p,ul,ol,td,label {
+				font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+				font-weight: 400;
+				font-size: 14px;
+				line-height: 20px;
+				color: #747474;
+				text-align: justify;
+			}
+
+			th, strong {
+				color: #0f334a;
+			}
+
+			body {
+				width: 1024px;
+				margin: 0 auto;
+			}
+
+			html,body {
+				-webkit-touch-callout: none;
+				-webkit-user-select: none;
+				-khtml-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				user-select: none;
+
+			}
+
+
+			label.highlighted{
+				background: rgba(0,0,0,0.1);
+				border-radius: 3px;
+			}
+
+			text {
+				cursor: default;
+			}
+
+			.tooltip-box {
+				padding: 4px;
+				background: #FFF;
+				z-index: 1000;
+				position: absolute;
+				pointer-events:none;
+				border-radius: 4px;
+				border: 1px solid #CCC;
+				font-size: 10px;
+			}
+
+			.gDragit {
+				pointer-events:none;
+			}
+
+			#boxplot, #timeline, #scatter{
+				height: 560px;
+			}
+
+			.selected {
+				stroke-width: 4;
+			}
+
+			button.icon:hover {
+				background-color: #DDD;
+			}
+
+			.icon {
+				border:none;
+				background: none;
+				width:21px;
+				height:21px;
+				display:inline-block;
+				background-size:cover;
+			}
+
+			.icon.icon-play {
+				background-image:url('img/ic_play_arrow_black_24px.svg');
+				opacity: 0.7;
+			}
+			.icon.icon-play[disabled] {
+				opacity: 0.3;
+			}
+			.icon.icon-pause {
+				background-image:url('img/ic_pause_black_24px.svg');
+				opacity: 0.7;
+			}
+			.icon.icon-reset {
+				background-image:url('img/ic_skip_previous_black_24px.svg');
+				opacity: 0.7;
+			}
+
+			input[type="range"] {
+				cursor:pointer;
+			}
+
+			
+			
+			
+			body {
+				font: 10px sans-serif;
+			}
+
+			.axis path,
+			.axis line {
+				fill: none;
+				stroke: #000;
+				shape-rendering: crispEdges;
+			}
+
+			.x.axis path {
+				display: none;
+			}
+
+			.line {
+				fill: none;
+				stroke: steelblue;
+				stroke-width: 1.5px;
+			}
+
+			.box {
+			  font: 10px sans-serif;
+			}
+
+			.box line,
+			.box rect,
+			.box circle {
+			  fill: #fff;
+			  stroke: #000;
+			  stroke-width: 1.5px;
+			}
+
+			.box .center {
+			  stroke-dasharray: 3,3;
+			}
+
+			.box .outlier {
+			  fill: none;
+			  stroke: #ccc;
+			}		
+
+			
+			
+		</style>
+	</head>
+	<body class="best-case-scenario" style="background: rgba(41,137,202,1);">
+		<div style="background: #FFF; width: 1024px; padding: 20px">
+			<h1><a href="../baltic-sea.html">&lsaquo; Case Study: Baltic Sea</a></h1>
+			<h2>Box Plots</h2>
+			<div class="tooltip-box" style="display:none;">
+			</div>
+			<hr>
+			<ul class="nav nav-tabs" role="tablist">
+				<li role="presentation" class="active"><a href="boxcharts3.html#boxplot" id="boxplottab" aria-controls="boxplot" role="tab" data-toggle="tab">Box Plot</a></li>
+				<!--
+				<li role="presentation"><a href="#timeline" id="timelinetab" aria-controls="timeline" role="tab" data-toggle="tab">Timeline</a></li>
+				<li role="presentation"><a href="#scatter" id="scattertab" aria-controls="scatter" role="tab" data-toggle="tab">Scatterplot (Biomass v Landings)</a></li>
+				-->
+			</ul>
+			<div class="tab-content">
+				<div role="tabpanel" class="tab-pane active" id="boxplot">
+					<div id="combo"></div>
+					<div id="chart_boxplot">&nbsp;</div>
+				</div>
+				<div role="tabpanel" class="tab-pane" id="timeline">
+					<div id="chart_timeline" style="margin:0px"></div>
+
+				</div>
+				<div role="tabpanel" class="tab-pane" id="scatter">
+					<div id="chart" style="margin:0px"></div>
+				</div>
+			</div>
+			<div class="container-fluid" id="boxplot-controls">
+				<div class="row">
+					<div class="col-xs-12">
+						<br />
+						<div id="theText" class="text-center" style="font-weight:700;font-size:15px;">
+							&nbsp;
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-6">
+						<select name="boxplotoption" id="boxplotoption">
+							<option value="0">EwE_HSE_1_WAR_BAU</option>
+							
+							<option value="1">EwE_HSE_1_WAR_BSP</option>
+							<option value="2">EwE_HSE_1_WAR_REF</option>
+							<option value="3">EwE_HSE_2_WAR_BAU</option>
+							<option value="4">EwE_HSE_2_WAR_BSP</option>
+							<option value="5">EwE_HSE_2_WAR_REF</option>
+							<option value="6">EwE_HSE_N_PRS_BAU</option>
+							<option value="7">EwE_HSE_N_PRS_BSP</option>
+							<option value="8">EwE_HSE_N_PRS_REF</option>
+							<option value="9">EwE_LSE_1_WAR_BAU</option>
+							<option value="10">EwE_LSE_1_WAR_BSP</option>
+							<option value="11">EwE_LSE_1_WAR_REF</option>
+							<option value="12">EwE_LSE_2_WAR_BAU</option>
+							<option value="13">EwE_LSE_2_WAR_BSP</option>
+							<option value="14">EwE_LSE_2_WAR_REF</option>
+							<option value="15">EwE_LSE_N_PRS_BAU</option>
+							<option value="16">EwE_LSE_N_PRS_BSP</option>
+							<option value="17">EwE_LSE_N_PRS_REF</option>
+							
+						</select>
+						
+				
+						<!--
+						<h3>Fish
+							<div class="pull-right">
+								<button class="btn btn-xs btn-default select-all" value="Fish">Select All</button>
+								<button class="btn btn-xs btn-default deselect-all" value="Fish">Deselect All</button>
+							</div>
+						</h3>
+						-->
+					</div>
+				</div>
+			</div>
+			<div class="container-fluid" id="timeline-and-scatter-controls" style="display: none">
+				<div class="row">
+					<div class="col-xs-12">
+						<br />
+						<div id="theText" class="text-center" style="font-weight:700;font-size:15px;">
+							&nbsp;
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-xs-5">
+						<h3>Fish
+							<div class="pull-right">
+								<button class="btn btn-xs btn-default select-all" value="Fish">Select All</button>
+								<button class="btn btn-xs btn-default deselect-all" value="Fish">Deselect All</button>
+							</div>
+						</h3>
+						<div class="container-fluid">
+							<div class="row" id="fishchecks">
+								<div class="col-xs-6">
+									<div class="checkbox">
+										<label><input type="checkbox" autocomplete="off" checked value="Blue Whiting"/>Blue Whiting</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Cod mature"/>Cod mature</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Cod immature"/>Cod immature</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Flatfish"/>Flatfish</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Gurnards"/>Gurnards</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Haddock mature"/>Haddock mature</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Haddock immature"/>Haddock immature</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Herring"/>Herring</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Horse Mackerel"/>Horse Mackerel</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Large demersals"/>Large demersals</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Monkfish"/>Monkfish</label><br/>
+									</div>
+								</div>
+								<div class="col-xs-6">
+									<div class="checkbox">
+										<label><input type="checkbox" autocomplete="off" checked value="Mackerel"/>Mackerel</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Norway pout"/>Norway pout</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Pollock"/>Pollock</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Rays"/>Rays</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Sharks"/>Sharks</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Sandeel"/>Sandeel</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Sprat"/>Sprat</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Whiting mature"/>Whiting mature</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Whiting immature"/>Whiting immature</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Other pelagics"/>Other pelagics</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Other small fish"/>Other small fish</label><br/>
+									</div>
+								</div>
+							</div>
+						</div>
+						<h3>Crustaceans
+							<div class="pull-right">
+								<button class="btn btn-xs btn-default select-all" value="Crustaceans">Select All</button>
+								<button class="btn btn-xs btn-default deselect-all" value="Crustaceans">Deselect All</button>
+							</div>
+						</h3>
+						<div class="container-fluid">
+							<div class="row">
+								<div class="col-xs-12">
+									<div class="checkbox">
+										<label><input type="checkbox" autocomplete="off" checked value="Edible crab"/>Edible crab</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Lobster"/>Lobster</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Nephrops"/>Nephrops</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Velvet crab"/>Velvet crab</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Crustaceans"/>Other crustaceans</label><!-- Crustaceans --><br/>
+									</div>
+								</div>
+							</div>
+						</div>
+						<h3>Other
+							<div class="pull-right">
+								<button class="btn btn-xs btn-default select-all" value="Other">Select All</button>
+								<button class="btn btn-xs btn-default deselect-all" value="Other">Deselect All</button>
+							</div>
+						</h3>
+						<div class="container-fluid">
+							<div class="row">
+								<div class="col-xs-12">
+									<div class="checkbox">
+										<label><input type="checkbox" autocomplete="off" checked value="Cephalopod"/>Cephalopod</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Epifauna"/>Epifauna</label><br/>
+										<label><input type="checkbox" autocomplete="off" checked value="Scallops"/>Scallops</label><br/>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-xs-7">
+						<div class="container-fluid">
+							<h3>Non-fished Vertebrates</h3>
+							<div class="row">
+								<div class="col-xs-8">
+									<div id="chart_vertebates"></div>
+									<p class="text-center">Change in Biomass over time</p>
+								</div>
+								<div class="col-xs-4">
+									<p>
+										<span name="Grey seals">&mdash; Grey seals</span><br>
+										<span name="Poor cod">&mdash; Poor cod</span><br>
+										<span name="Seabirds">&mdash; Seabirds</span><br>
+										<span name="Cetaceans">&mdash; Cetaceans</span><br>
+										<span name="Harbour seals">&mdash; Harbour seals</span><br>
+									</p>
+								</div>
+							</div>
+							<h3>Invertebrates</h3>
+							<div class="row">
+								<div class="col-xs-8">
+									<div id="chart_invertebates"></div>
+									<p class="text-center">Change in Biomass over time</p>
+								</div>
+								<div class="col-xs-4">
+									<p>
+										<span name="Phytoplankton">&mdash; Phytoplankton</span><br>
+										<span name="Large zooplankton">&mdash; Large zooplankton</span><br>
+										<span name="Small zooplankton">&mdash; Small zooplankton</span><br>
+										<span name="Infauna">&mdash; Infauna</span><br>
+										<span name="Algae">&mdash; Algae</span><br>
+									</p>
+								</div>
+							</div>
+							<h3>Detritus</h3>
+							<div class="row">
+								<div class="col-xs-8">
+									<div id="chart_detritus"></div>
+									<p class="text-center">Change in Biomass over time</p>
+								</div>
+								<div class="col-xs-4">
+									<p>
+										<span name="Detritus">&mdash; Detritus</span><br>
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<br>
+		<!--<p>
+		Original creation by <a href="http://www.gapminder.org/world/">Gapminder</a> using <a href="https://github.com/RandomEtc/mind-gapper-js">Tom Carden</a> JavaScript version.<br>
+		Recreation by <a href="http://bost.ocks.org/mike/nations/">Mike Bostock</a> with <a href="http://d3js.org/">D3.js</a>.<br>
+		Re-Recreation using <a href="http://romsson.github.io/dragit/">dragit.js</a> by <a href="http://romain.vuillemot.net/">Romain Vuillemot</a> (view <a href="https://github.com/romsson/dragit/blob/master/example/nations.html">source</a> on GitHub).-->
+
+		
+		<script>
+			
+			$("#boxplottab").on("click", function(){
+				$("#timeline-and-scatter-controls").hide();
+				$("#boxplot-controls").show();
+			});
+			$("#timelinetab").on("click", function(){
+				$("#boxplot-controls").hide();
+				$("#timeline-and-scatter-controls").show();
+			});
+			$("#scattertab").on("click", function(){
+				$("#boxplot-controls").hide();
+				$("#timeline-and-scatter-controls").show();
+			});
+			
+			$("#boxplotoption").on("change", function(){
+				var slctd = $("#boxplotoption option:selected").val();
+				boxupdate([profit_ACT[slctd],profit_PAS[slctd],profit_PEL[slctd]]);
+			});
+			
+			
+			
+			var parseDate = d3.time.format("%Y%m%d").parse;
+
+			var profit_ACT = [];
+			var profit_PAS = [];
+			var profit_PEL = [];
+			var mainDataObject = {};
+			var comboLookup = {
+				EwE_HSE_1_WAR_BAU : 0,
+				EwE_HSE_1_WAR_BSP : 1,
+				EwE_HSE_1_WAR_REF : 2,
+				EwE_HSE_2_WAR_BAU : 3,
+				EwE_HSE_2_WAR_BSP : 4,
+				EwE_HSE_2_WAR_REF : 5,
+				EwE_HSE_N_PRS_BAU : 6,
+				EwE_HSE_N_PRS_BSP : 7,
+				EwE_HSE_N_PRS_REF : 8,
+				EwE_LSE_1_WAR_BAU : 9,
+				EwE_LSE_1_WAR_BSP : 10,
+				EwE_LSE_1_WAR_REF : 11,
+				EwE_LSE_2_WAR_BAU : 12,
+				EwE_LSE_2_WAR_BSP : 13,
+				EwE_LSE_2_WAR_REF : 14,
+				EwE_LSE_N_PRS_BAU : 15,
+				EwE_LSE_N_PRS_BSP : 16,
+				EwE_LSE_N_PRS_REF : 17
+			}
+			d3.json("baltic.json", function (dataObject) {
+				console.log('loaded');
+				mainDataObject = dataObject;
+				
+				for (var combo in comboLookup) {
+					profit_ACT.push(dataObject[combo]['profit_ACT']);
+					profit_PAS.push(dataObject[combo]['profit_PAS']);
+					profit_PEL.push(dataObject[combo]['profit_PEL']);
+				}
+
+				//boxupdate([profit_ACT[6], profit_ACT[0], profit_ACT[1], profit_ACT[2], profit_ACT[3]]);
+				//
+				boxupdate([profit_ACT[6],profit_PAS[6],profit_PEL[6]]);
+				//update(profit_PAS[0], svgdemtopel);
+				//update(profit_PEL[0], svgsimref);
+				
+				
+				
+				$("#combo").html("<h3>Profit_ACT vs Profit_PAS vs Profit_PEL using Profit_cod value</h3>");
+				//$("#combo").html("Profit_ACT for Combinations: EwE_HSE_N_PRS_BAU vs EwE_HSE_1_WAR_BAU using Profit_cod value");
+				
+				/*
+				setInterval(function() {
+				  //svg.datum(randomize).call(chart.duration(1000));
+				  //boxupdate(profit_ACT[3], profit_ACT[2]);
+					var da = [
+						profit_ACT[parseInt(Math.random()*17)], 
+						profit_ACT[parseInt(Math.random()*17)], 
+						profit_ACT[parseInt(Math.random()*17)], 
+						profit_ACT[parseInt(Math.random()*17)], 
+						profit_ACT[parseInt(Math.random()*17)]
+					];
+					boxupdate(da);
+
+				}, 2000);				
+				*/
+			});
+
+			//var ds = JSON.parse(JSON.stringify(dataset1));
+
+			/*
+			var currentds = 0;
+			var transitionInterval = setInterval(function () {
+				currentds++;
+				if (currentds > (profit_PAS.length - 1)) currentds = 0;
+				update(profit_ACT[currentds], svgbe);
+				update(profit_PAS[currentds], svgdemtopel);
+				update(profit_PEL[currentds], svgsimref);
+				$("#combo").html("Combo:" + Object.keys(mainDataObject)[currentds]);
+
+			}, 2000);
+			*/
+
+			var margin = {top: 10, right: 70, bottom: 20, left: 70},
+				width = 180 - margin.left - margin.right,
+				height = 500 - margin.top - margin.bottom;
+
+			var min = Infinity,
+				max = -Infinity;
+
+			var chart = d3.box()
+				.whiskers(iqr(1.5))
+				.width(width)
+				.height(height);
+
+			var boxplotsvg = null;
+
+			//boxupdate(profit_ACT[parseInt(Math.random()*17)], profit_ACT[parseInt(Math.random()*17)]);
+			//
+			//d3.csv("morley.csv", function(error, csv) {
+			//  if (error) throw error;
+			function boxupdate(datasets, category) {
+				min = Infinity;
+				max = -Infinity;
+		
+				switch (category) {
+					case "Profit_cod":
+					case "Profit_pel":
+					case "Profit_total":
+					case "BAU":
+					case "GES":
+					case "MY":
+						category = category;
+						break;
+					default:
+						category = "Profit_cod";
+				}
+				
+				//var datasets = [dataset1, dataset2, dataset1, dataset2, dataset1];
+
+				var data = [];
+
+				//get PRS and WAR datasets (i.e. two params in this function)
+				//create data structure for chart as follows
+				// data[1: [4, 6, ...], 2: [2, 6, ...]]
+				// also get total min and max values.
+				// data[1] will be from PRS dataset
+				// data[2] will be from WAR dataset
+
+				var e;
+				var d;
+				var s;
+				var dslen = datasets.length
+				for (i = 0; i < dslen; i++) {
+					e = i;
+					d = data[e];
+					for (var property in datasets[i]) {
+						//goes through years, so property = year as string
+						if (datasets[i].hasOwnProperty(property) && property != '') {
+							s = parseInt(datasets[i][property][category]);
+							if (!d) d = data[e] = [s];
+							else d.push(s);					
+							if (s > max) max = s;
+							if (s < min) min = s;
+						}
+					}
+					
+				}
+
+				/*
+				var e = 0;
+				var s;
+				var d = data[e];
+				for (var property in dataset1) {
+					//goes through years, so property = year as string
+					if (dataset1.hasOwnProperty(property) && property != '') {
+						s = parseInt(dataset1[property]['Profit_cod']);
+						if (!d) d = data[e] = [s];
+						else d.push(s);					
+						if (s > max) max = s;
+						if (s < min) min = s;
+					}
+				}
+				e = 1;
+				d = data[e];
+				for (var property in dataset2) {
+					//goes through years, so property = year as string
+					if (dataset2.hasOwnProperty(property) && property != '') {
+						s = parseInt(dataset2[property]['Profit_cod']);
+						if (!d) d = data[e] = [s];
+						else d.push(s);					
+						if (s > max) max = s;
+						if (s < min) min = s;
+					}
+				}
+				*/
+		
+				console.log(data);
+
+			/*
+			  csv.forEach(function(x) {
+				var e = Math.floor(x.Expt - 1),
+					r = Math.floor(x.Run - 1),
+					s = Math.floor(x.Speed),
+					d = data[e];
+				if (!d) d = data[e] = [s];
+				else d.push(s);
+				if (s > max) max = s;
+				if (s < min) min = s;
+			  });
+			*/
+			  chart.domain([min, max]);
+			  /*
+				var svg = d3.select("#chart_boxplot").selectAll("svg")
+					.data(data)
+				  .enter().append("svg")
+					.attr("class", "box")
+					.attr("width", width + margin.left + margin.right)
+					.attr("height", height + margin.bottom + margin.top)
+				  .append("g")
+					.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+					.call(chart);
+
+				setInterval(function() {
+				  svg.datum(randomize).call(chart.duration(1000));
+				}, 2000);
+				*/
+			   
+				//if new
+				if (boxplotsvg == null) {
+					boxplotsvg = d3.select("#chart_boxplot").selectAll("svg")
+						.data(data)
+						.enter().append("svg")
+						.attr("class", "box")
+						.attr("width", width + margin.left + margin.right)
+						.attr("height", height + margin.bottom + margin.top)
+						.append("g")
+						.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+						.call(chart);	
+				} else {
+					boxplotsvg.data(data).call(chart.duration(1000));
+					//svg.datum(remap).call(chart.duration(1000));
+				}				
+
+
+			}
+
+			function remap(d) {
+				return d;
+			}
+
+			function randomize(d) {
+			  if (!d.randomizer) d.randomizer = randomizer(d);
+			  return d.map(d.randomizer);
+			}
+
+			function randomizer(d) {
+			  var k = d3.max(d) * .02;
+			  return function(d) {
+				return Math.max(min, Math.min(max, d + k * (Math.random() - .5)));
+			  };
+			}
+
+			// Returns a function to compute the interquartile range.
+			function iqr(k) {
+			  return function(d, i) {
+				var q1 = d.quartiles[0],
+					q3 = d.quartiles[2],
+					iqr = (q3 - q1) * k,
+					i = -1,
+					j = d.length;
+				while (d[++i] < q1 - iqr);
+				while (d[--j] > q3 + iqr);
+				return [i, j];
+			  };
+			}
+
+
+		</script>		
+		
+	</body>
+</html>

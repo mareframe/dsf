@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>MareFrame: Decision Support Framework</title>
+	<link href="css/lib/bootstrap.min.css" rel="stylesheet">
+	<link href="css/body.css" rel="stylesheet">
+	<link href="css/footer.css" rel="stylesheet">
+	<style>
+		.loading-page{
+			width: 100%;
+			border: 1px solid #ddd;
+			border-top: none;
+			border-bottom: 1px dotted #eee;
+			margin: 0px;
+			display: inline-block;
+			padding: 20px;
+		}
+		
+		.loading-page > div{
+			font-weight: bold;
+		}
+		.loading-page img{
+			margin-right: 10px;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-8">
+				<div class="page-header">
+					<h1><a href="http://www.mareframe-fp7.org/"><img src="img/logo_mareframe.png"></a> Decision Support Framework</h1>
+				</div>
+				<div class="row">
+					<div class="col-xs-12">
+						<a href="gulf-of-cadiz.html"><img src="img/locations/gulf-of-cadiz.jpg" class="img-thumbnail europe-map-back"></a>
+						<p>The MareFrame Decision Support Framework is a pragmatic planning process for moving towards an Ecosystem Approach to Fisheries Management. Click on the map of Europe to the left to see all case studies or explore the current case study below.</p>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-4 page-header europe-map-zoom visible-lg-block">
+				<img src="img/locations/gulf-of-cadiz.jpg" class="center-block img-responsive img-rounded">
+			 </div>
+		</div>
+		<div class="row">
+			<div class="col-sm-12">
+				<h1>Case Study: Gulf of Cádiz</h1>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-12">
+				<h2>Análisis de escenarios de gestión</h2>
+				<div>
+
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+  <li role="presentation" class="active"><a loaded="true" href="gulf-of-cadiz-modeloutput.html#TAC_fija_extendida_final_red" aria-controls="TAC_fija_extendida_final_red" role="tab" data-toggle="tab">TAC fija</a></li>
+    <li role="presentation"><a href="gulf-of-cadiz-modeloutput.html#TAC_fija_vs_adaptativa_final_red" aria-controls="TAC_fija_vs_adaptativa_final_red" role="tab" data-toggle="tab">TAC adaptativa vs TAC fija</a></li>
+    <li role="presentation"><a href="gulf-of-cadiz-modeloutput.html#TAC_fija_vs_adaptativa_insurance_final_red" aria-controls="TAC_fija_vs_adaptativa_insurance_final_red" role="tab" data-toggle="tab">Con seguro: TAC fija vs Adaptativa</a></li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="TAC_fija_extendida_final_red">
+		<div class="loading-page">
+			<div><img src="img/loading-ffffff.gif">Loading...</div>
+			<p>Please wait 15 seconds for the content to completely load.</p>
+		</div>
+		<iframe style="height: 4000px;width: 100%;border: 1px solid #ddd;border-top:none;"></iframe>
+	</div>
+    <div role="tabpanel" class="tab-pane" id="TAC_fija_vs_adaptativa_final_red">
+		<div class="loading-page">
+			<div><img src="img/loading-ffffff.gif">Loading...</div>
+			<p>Please wait 30 seconds for the content to completely load.</p>
+		</div>
+		<iframe style="height: 7500px;width: 100%;border: 1px solid #ddd;border-top:none;"></iframe>
+	</div>
+    <div role="tabpanel" class="tab-pane" id="TAC_fija_vs_adaptativa_insurance_final_red">
+		<div class="loading-page">
+			<div><img src="img/loading-ffffff.gif">Loading...</div>
+			<p>Please wait 30 seconds for the content to completely load.</p>
+		</div>
+		<iframe style="height: 8500px;width: 100%;border: 1px solid #ddd;border-top:none;"></iframe>
+	</div>
+  </div>
+</div>
+			</div>
+		</div>
+	</div>
+
+	<footer class="footer">
+		<div class="container">
+			<div class="row">
+				<div class="col-xs-2 col-sm-2 col-md-2">
+					<img src="img/logo_eu.png" class="center-block img-responsive">
+				</div>
+				<div class="col-xs-10 col-sm-10 col-md-6">
+					<p class="text-muted">This project has receive funding from the European Union's Seventh Framework Programme for research, technological development and demonstration under grant agreement no. 613571.</p>
+				</div>
+			</div>
+		</div>
+	</footer>
+	<script src="js/jquery-2.0.3.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script>
+		$(document).ready(function(){
+			
+			var hash = "#TAC_fija_extendida_final_red";
+			$(hash+" iframe").attr("src","http://mareframe.mapix.com:3838/"+hash.slice(1,100));
+			setTimeout(function(){
+				$(hash+" .loading-page").slideUp();
+			},15*1000);
+			
+			$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+				if(!$(e.target).attr("loaded")){
+					var hash = $(e.target).attr('href');
+					$(hash+" iframe").attr("src","http://mareframe.mapix.com:3838/"+hash.slice(1,100));
+					$(e.target).attr("loaded",true)
+					setTimeout(function(){
+						$(hash+" .loading-page").slideUp();
+					},30*1000);
+				}
+			})
+		});
+	</script>
+</body>
+</html>
