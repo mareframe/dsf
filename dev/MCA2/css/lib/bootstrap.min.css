@@ -193,7 +193,7 @@ select {
 }
 @font-face {
     font-family: "Glyphicons Halflings";
-    src: url("http://mareframe.mapix.com/dev/MCA2/css/fonts/glyphicons-halflings-regular.eot?") format("embedded-opentype"), url("http://mareframe.mapix.com/dev/MCA2/css/fonts/glyphicons-halflings-regular.woff") format("woff"), url("http://mareframe.mapix.com/dev/MCA2/css/fonts/glyphicons-halflings-regular.ttf") format("truetype"), url("http://mareframe.mapix.com/dev/MCA2/css/fonts/glyphicons-halflings-regular.svg") format("svg");
+    src: url("../fonts/glyphicons-halflings-regular.eot?") format("embedded-opentype"), url("../fonts/glyphicons-halflings-regular.woff") format("woff"), url("../fonts/glyphicons-halflings-regular.ttf") format("truetype"), url("../fonts/glyphicons-halflings-regular.svg") format("svg");
 }
 .glyphicon {
     -moz-osx-font-smoothing: grayscale;
