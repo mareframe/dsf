@@ -109,7 +109,7 @@
 		$(document).ready(function(){
 			
 			var hash = "#TAC_fija_extendida_final_red";
-			$(hash+" iframe").attr("src","http://mareframe.mapix.com:3838/"+hash.slice(1,100));
+			$(hash+" iframe").attr("src","https://mfdb.rhi.hi.is/shiny/"+hash.slice(1,100));
 			setTimeout(function(){
 				$(hash+" .loading-page").slideUp();
 			},15*1000);
@@ -117,7 +117,7 @@
 			$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
 				if(!$(e.target).attr("loaded")){
 					var hash = $(e.target).attr('href');
-					$(hash+" iframe").attr("src","http://mareframe.mapix.com:3838/"+hash.slice(1,100));
+					$(hash+" iframe").attr("src","https://mfdb.rhi.hi.is/shiny/"+hash.slice(1,100));
 					$(e.target).attr("loaded",true)
 					setTimeout(function(){
 						$(hash+" .loading-page").slideUp();
